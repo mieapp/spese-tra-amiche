@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Spese tra amiche">
+<title>Spese tra amiche</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<meta name="theme-color" content="#7A9471">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.x/dist/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --g50:#F1F5EC;--g100:#DCE7D0;--g400:#8FAF7B;--g600:#6B8F5C;--g800:#3F5636;
+  --r50:#FFF0F0;--pg:#F6F8F3;--rmd:14px;--rlg:20px;--rsm:10px;
+}
+body{
+  background-color:var(--pg);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+.app{
+  max-width:480px;margin:0 auto;padding:0 12px 90px;min-height:100vh;
+  background-color:var(--pg);
+  background-image:linear-gradient(rgba(246,248,243,0.55),rgba(246,248,243,0.55)), url('./cover.png');
+  background-size:cover;
+  background-position:center top;
+  background-repeat:no-repeat;
+}
+.screen{display:none;}.screen.active{display:block;}
+.card{background:#fff;border-radius:var(--rlg);padding:1rem 1.25rem;margin-bottom:14px;box-shadow:0 1px 8px rgba(111,143,92,0.10);}
+.st{font-size:11px;font-weight:500;color:var(--g600);margin-bottom:10px;text-transform:uppercase;letter-spacing:0.08em;}
+.btn{display:block;width:100%;padding:14px;border:none;border-radius:var(--rmd);background:var(--g50);color:var(--g800);font-size:16px;font-weight:500;cursor:pointer;text-align:center;margin-bottom:10px;-webkit-tap-highlight-color:transparent;}
+.btn:active{transform:scale(0.97);}
+.btnp{background:var(--g400);color:#fff;}
+.btnd{background:var(--r50);color:#C0392B;}
+.btns{padding:8px 16px;width:auto;display:inline-block;font-size:14px;border-radius:var(--rsm);border:none;background:var(--g50);color:var(--g800);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.btng{background:transparent;border:1.5px solid var(--g100);color:var(--g600);}
+input,select{width:100%;padding:12px 14px;border:1.5px solid var(--g100);border-radius:var(--rmd);background:var(--g50);color:#222;font-size:16px;margin-bottom:12px;outline:none;font-family:inherit;-webkit-appearance:none;}
+input[type="checkbox"]{width:16px;height:16px;padding:0;margin:0;accent-color:var(--g400);vertical-align:middle;-webkit-appearance:checkbox;}
+select{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236B8F5C' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 14px center;padding-right:38px;}
+input:focus,select:focus{border-color:var(--g400);background:#fff;}
+label{font-size:13px;color:var(--g600);font-weight:500;display:block;margin-bottom:6px;}
+.err{background:var(--r50);color:#C0392B;border:1px solid #F5C6C6;padding:10px 14px;border-radius:var(--rmd);font-size:13px;margin-bottom:12px;}
+.aok{background:var(--g50);color:#33502A;border:1px solid var(--g100);padding:10px 14px;border-radius:var(--rmd);font-size:13px;margin-bottom:10px;}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:var(--g50);border:1.5px solid var(--g100);border-radius:20px;font-size:14px;margin:3px;color:var(--g800);}
+.chip .rm{cursor:pointer;color:#E74C3C;font-size:18px;line-height:1;}
+.partchip{display:inline-flex;align-items:center;justify-content:center;padding:10px 18px;background:var(--g50);border:2px solid var(--g100);border-radius:25px;font-size:15px;font-weight:500;margin:4px;color:var(--g800);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:all .15s;}
+.partchip.on{background:var(--g400);border-color:var(--g400);color:#fff;}
+.catbadge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:8px;margin-right:4px;font-weight:500;background:var(--g50);color:var(--g800);}
+.balrow{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--g50);}
+.balrow:last-child{border-bottom:none;}
+.bpos{color:#27AE60;font-weight:600;}.bneg{color:#E74C3C;font-weight:600;}.bzero{color:#999;font-weight:500;}
+.trrow{padding:10px 0;font-size:14px;border-bottom:1px solid var(--g50);display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.trrow:last-child{border-bottom:none;}
+.mgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:14px;}
+.metric{background:var(--g50);border-radius:var(--rmd);padding:14px;}
+.mlbl{font-size:11px;color:var(--g600);font-weight:500;text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;}
+.mval{font-size:17px;font-weight:600;color:var(--g800);}
+.nav{display:flex;gap:6px;margin-bottom:18px;background:var(--g50);border-radius:var(--rmd);padding:5px;}
+.nbtn{flex:1;padding:10px 4px;font-size:13px;font-weight:500;border:none;border-radius:var(--rsm);background:transparent;color:var(--g600);cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.nbtn.on{background:#fff;color:var(--g800);box-shadow:0 1px 4px rgba(111,143,92,0.20);}
+.sectab{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0;}
+.sectabbtn{flex:1;min-width:100px;padding:12px 8px;border-radius:var(--rmd);border:2px solid var(--g100);background:#fff;color:var(--g800);font-size:14px;font-weight:600;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent;}
+.sectabbtn.on{background:var(--g400);border-color:var(--g400);color:#fff;}
+.ph{padding:20px 0 8px;}.ph h1{font-size:26px;font-weight:700;color:var(--g800);margin-bottom:2px;}.ph p{font-size:15px;color:var(--g600);}
+.brow{display:flex;align-items:center;gap:10px;padding:16px 0 10px;}
+.bbtn{width:40px;height:40px;border-radius:50%;background:var(--g50);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--g800);font-size:20px;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+.btitle{font-size:20px;font-weight:700;color:var(--g800);flex:1;}
+.expitem{padding:12px 0;border-bottom:1px solid var(--g50);}
+.expitem:last-child{border-bottom:none;}
+.expmain{display:flex;justify-content:space-between;align-items:flex-start;}
+.expmeta{font-size:12px;color:#666;margin-top:3px;}
+.paybtn{flex:1;padding:10px 8px;border:2px solid var(--g100);border-radius:var(--rmd);background:var(--g50);color:var(--g800);font-size:14px;font-weight:500;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent;}
+.paybtn.active{border-color:var(--g400);box-shadow:0 0 0 3px rgba(143,175,123,.3);}
+.tabbar{position:fixed;bottom:0;left:0;right:0;background:#fff;box-shadow:0 -2px 10px rgba(0,0,0,0.08);display:flex;max-width:480px;margin:0 auto;z-index:20;}
+.tabbtn{flex:1;padding:10px 4px 8px;border:none;background:transparent;color:#999;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.tabbtn.on{color:var(--g600);}
+.tabbtn i{font-size:20px;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 0 4px;}
+.topbar h1{font-size:20px;font-weight:700;color:var(--g800);}
+.logoutbtn{background:none;border:none;color:var(--g600);font-size:13px;cursor:pointer;}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--g100);border-top-color:var(--g400);border-radius:50%;animation:sp .6s linear infinite;vertical-align:middle;}
+@keyframes sp{to{transform:rotate(360deg);}}
+.cbar{margin-bottom:12px;}
+.cbarlbl{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px;}
+.cbartrack{height:7px;background:var(--g50);border-radius:4px;overflow:hidden;}
+.cbarfill{height:7px;border-radius:4px;background:var(--g400);}
+.covimg{width:100%;border-radius:var(--rlg);margin-bottom:16px;}
+.link{color:var(--g600);font-size:14px;text-align:center;display:block;cursor:pointer;margin-top:6px;}
+.settlecard{background:var(--g50);border-radius:var(--rmd);padding:8px 10px;margin-top:6px;font-size:12px;color:#555;}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+
+<!-- LOGIN -->
+<div id="s-login" class="screen active">
+  <div class="ph" style="text-align:center;"><h1>Spese tra amiche</h1><p>Accedi con le tue credenziali</p></div>
+  <div class="card">
+    <label>Email</label><input type="email" id="li-email" autocomplete="username">
+    <label>Password</label><input type="password" id="li-pass" autocomplete="current-password">
+    <div id="li-err"></div>
+    <button class="btn btnp" id="btn-login">Accedi</button>
+    <span class="link" id="btn-forgot">Password dimenticata?</span>
+  </div>
+  <p style="text-align:center;font-size:12px;color:#999;padding:0 20px;">Non esiste registrazione pubblica: gli account vengono creati dall'amministratrice.</p>
+</div>
+
+<!-- SELETTORE SEZIONE -->
+<div id="s-section" class="screen">
+  <div class="topbar"><div></div><button class="logoutbtn" id="btn-logout-sec">Esci</button></div>
+  <div class="ph" style="text-align:center;"><h1>Spese tra amiche</h1><p>Scegli la sezione</p></div>
+  <div class="sectab" id="sectab-container"></div>
+</div>
+
+<!-- HOME / SPESE -->
+<div id="s-home" class="screen">
+  <div class="topbar">
+    <h1 id="home-title">Amiche</h1>
+    <div>
+      <span class="link" id="btn-switch-sec" style="display:none;margin:0 10px 0 0;">Cambia sezione</span>
+      <span class="link" id="btn-change-pass" style="margin:0 10px 0 0;">Password</span>
+      <button class="logoutbtn" id="btn-logout">Esci</button>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nbtn on" id="t-spese">Spese</button>
+    <button class="nbtn" id="t-bilancio">Bilancio</button>
+    <button class="nbtn" id="t-storico">Storico</button>
+  </div>
+
+  <div id="tc-spese">
+    <div class="mgrid">
+      <div class="metric"><div class="mlbl">Totale</div><div class="mval" id="mtot">€0</div></div>
+      <div class="metric"><div class="mlbl">Spese</div><div class="mval" id="mcnt">0</div></div>
+      <div class="metric"><div class="mlbl">Pro capite</div><div class="mval" id="mpc">€0</div></div>
+    </div>
+    <button class="btn btnp" id="btn-add-exp"><i class="ti ti-plus"></i> Aggiungi spesa</button>
+    <button class="btn btng" id="btn-toggle-select">Seleziona spese da compensare</button>
+    <div id="selection-bar" style="display:none;"></div>
+    <div class="card" style="padding:.5rem 1.25rem;" id="explist"></div>
+  </div>
+
+  <div id="tc-bilancio" style="display:none;">
+    <div class="card"><div class="st">Dare/avere per coppia</div><div id="balcont"></div></div>
+  </div>
+
+  <div id="tc-storico" style="display:none;">
+    <div class="card"><div class="st">Saldi effettuati</div><div id="histcont"></div></div>
+  </div>
+</div>
+
+<!-- AGGIUNGI/MODIFICA SPESA -->
+<div id="s-exp" class="screen">
+  <div class="brow"><button class="bbtn" id="btn-back-exp"><i class="ti ti-arrow-left"></i></button><div class="btitle">Nuova spesa</div></div>
+  <div class="card">
+    <label>Categoria</label>
+    <div id="ecatchips"></div>
+    <label style="margin-top:12px;">Descrizione (facoltativa)</label><input type="text" id="ed" placeholder="Es. Multisala Arcadia">
+    <label>Importo (€)</label><input type="number" id="eamt" placeholder="0.00" step="0.01">
+    <label>Data</label><input type="date" id="edate">
+    <label>Metodo di pagamento</label>
+    <div style="display:flex;gap:10px;margin-bottom:12px;">
+      <button type="button" class="paybtn active" id="pm-cash" onclick="setPM('cash')">💶 Contanti</button>
+      <button type="button" class="paybtn" id="pm-card" onclick="setPM('card')">💳 Carta</button>
+    </div>
+    <label>Pagato da</label><select id="epay"></select>
+  </div>
+  <div class="card">
+    <div class="st">Divide tra</div>
+    <div id="eparts"></div>
+    <div style="margin-top:12px;display:flex;gap:8px;"><button class="btns btnp" id="btn-all">✓ Tutti</button><button class="btns" id="btn-none">✗ Nessuno</button></div>
+  </div>
+  <div id="exp-err"></div>
+  <button class="btn btnp" id="btn-save-exp"><i class="ti ti-check"></i> Salva spesa</button>
+</div>
+
+<!-- GESTIONE PERSONE / CATEGORIE (ADMIN) -->
+<div id="s-admin" class="screen">
+  <div class="brow"><button class="bbtn" id="btn-back-admin"><i class="ti ti-arrow-left"></i></button><div class="btitle">Gestione</div></div>
+  <div class="card">
+    <div class="st">Dati iniziali</div>
+    <p style="font-size:12px;color:#999;margin-bottom:8px;">Carica in un colpo solo le persone e categorie di base per questa sezione (non duplica quelle già presenti).</p>
+    <button class="btns btnp" id="btn-seed">Carica dati iniziali di questa sezione</button>
+  </div>
+  <div class="card">
+    <div class="st">Persone</div>
+    <div id="admin-friends"></div>
+    <div class="row" style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="new-friend" placeholder="Nome nuova persona" style="flex:1;margin-bottom:0;"><button class="btns btnp" id="btn-add-friend" style="flex-shrink:0;">Aggiungi</button></div>
+  </div>
+  <div class="card">
+    <div class="st">Categorie</div>
+    <div id="admin-cats"></div>
+    <div class="row" style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="new-cat" placeholder="Nome nuova categoria" style="flex:1;margin-bottom:0;"><button class="btns btnp" id="btn-add-cat" style="flex-shrink:0;">Aggiungi</button></div>
+  </div>
+  <div class="card">
+    <div class="st">Crea nuovo utente</div>
+    <p style="font-size:12px;color:#999;margin-bottom:8px;">Crea l'account di accesso (email + password provvisoria) e lo abilita subito alle sezioni scelte, in un solo passaggio.</p>
+    <input type="email" id="new-user-email" placeholder="Email della persona">
+    <input type="text" id="new-user-pass" placeholder="Password provvisoria (min 6 caratteri)">
+    <div id="new-user-sec-checks" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
+    <label class="chip" style="cursor:pointer;margin-bottom:10px;"><input type="checkbox" id="new-user-is-admin" style="margin-right:4px;">Rendi amministratore</label>
+    <button class="btns btnp" id="btn-create-user">Crea utente e abilita accesso</button>
+    <div id="new-user-fb" style="margin-top:8px;"></div>
+  </div>
+  <div class="card">
+    <div class="st">Persone autorizzate</div>
+    <div id="admin-auth"></div>
+    <p style="font-size:12px;color:#999;margin-top:8px;">Per creare un nuovo accesso: 1) crea l'utente in Console Firebase &rarr; Authentication &rarr; Users. 2) qui sotto abilitalo a una sezione.</p>
+    <div style="display:flex;gap:8px;flex-direction:column;margin-top:8px;">
+      <input type="email" id="new-auth-email" placeholder="Email già creata in Firebase Auth">
+      <div id="new-auth-sec-checks" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+      <button class="btns btnp" id="btn-add-auth">Abilita accesso</button>
+    </div>
+  </div>
+</div>
+
+<!-- ESPORTA -->
+<div id="s-export" class="screen">
+  <div class="brow"><button class="bbtn" id="btn-back-export"><i class="ti ti-arrow-left"></i></button><div class="btitle">Esporta</div></div>
+  <div class="card">
+    <button class="btn" id="btn-wa"><i class="ti ti-brand-whatsapp"></i> Copia testo per WhatsApp</button>
+    <button class="btn" id="btn-csv"><i class="ti ti-file-spreadsheet"></i> Scarica CSV</button>
+    <button class="btn" id="btn-pdf"><i class="ti ti-file-type-pdf"></i> Scarica PDF</button>
+  </div>
+  <div id="exp-fb"></div>
+</div>
+
+<div class="tabbar" id="tabbar" style="display:none;">
+  <button class="tabbtn on" id="nav-home"><i class="ti ti-receipt"></i>Spese</button>
+  <button class="tabbtn" id="nav-export"><i class="ti ti-share"></i>Esporta</button>
+  <button class="tabbtn" id="nav-admin"><i class="ti ti-settings"></i>Gestione</button>
+  <button class="tabbtn" id="nav-help"><i class="ti ti-help-circle"></i>Aiuto</button>
+</div>
+
+<!-- AIUTO -->
+<div id="s-help" class="screen">
+  <div class="brow"><button class="bbtn" id="btn-back-help"><i class="ti ti-arrow-left"></i></button><div class="btitle">Come funziona</div></div>
+  <div class="card">
+    <div class="st">Le sezioni</div>
+    <p style="font-size:14px;line-height:1.5;margin-bottom:10px;">L'app potrebbe essere divisa in sezioni separate. Ogni sezione ha le sue persone, categorie, spese e saldi: non si mescolano mai tra loro. Se hai accesso a più sezioni, puoi passare dall'una all'altra con "Cambia sezione" in alto.</p>
+  </div>
+  <div class="card">
+    <div class="st">Aggiungere una spesa</div>
+    <p style="font-size:14px;line-height:1.5;margin-bottom:10px;">Tocca "Aggiungi spesa", scegli la categoria, l'importo, chi ha pagato e con chi va divisa (tocca i nomi in "Divide tra": puoi selezionare solo alcune persone, non serve che siano tutte). L'app calcola automaticamente quanto deve ciascuno.</p>
+  </div>
+  <div class="card">
+    <div class="st">Il bilancio</div>
+    <p style="font-size:14px;line-height:1.5;margin-bottom:10px;">Nella tab "Bilancio" vedi chi deve pagare chi. I saldi sono calcolati solo tra le persone che hanno davvero condiviso una spesa insieme: se Anna e Bea vanno al cinema e Carla non c'entra, il saldo tra Anna e Bea resta separato da qualunque altro conto di Carla.</p>
+  </div>
+  <div class="card">
+    <div class="st">Saldare una coppia</div>
+    <p style="font-size:14px;line-height:1.5;margin-bottom:10px;">Quando due persone si sistemano nella vita reale, tocca "Salda" accanto al loro saldo: l'app chiude in un colpo solo tutte le spese in sospeso tra loro due e registra l'operazione nello Storico, con il dettaglio di cosa ha coperto.</p>
+  </div>
+  <div class="card">
+    <div class="st">Gruppi di compensazione</div>
+    <p style="font-size:14px;line-height:1.5;margin-bottom:10px;">Se vuoi che alcune spese specifiche vengano compensate tra un gruppo ristretto di persone in modo più semplice (es. Anna deve a Bea, Bea deve a Carla → risulta solo Anna deve a Carla), vai su Spese, tocca "Seleziona spese da compensare", scegli le spese e crea un gruppo. Il gruppo appare come card a parte nel Bilancio; puoi aggiungere altre spese nel tempo finché resta aperto, e chiuderlo con "Salda gruppo" quando vi sistemate davvero.</p>
+  </div>
+  <div class="card">
+    <div class="st">Storico</div>
+    <p style="font-size:14px;line-height:1.5;margin-bottom:10px;">Qui trovi tutti i saldi già effettuati (sia tra coppie che di gruppo), con data, importo e l'elenco delle spese che ogni saldo ha coperto.</p>
+  </div>
+  <div class="card">
+    <div class="st">Gestione (solo admin)</div>
+    <p style="font-size:14px;line-height:1.5;margin-bottom:10px;">Da qui si aggiungono o rimuovono persone e categorie di questa sezione, e si abilitano nuovi account a una o più sezioni.</p>
+  </div>
+  <div class="card">
+    <div class="st">Esporta</div>
+    <p style="font-size:14px;line-height:1.5;">Puoi copiare un riepilogo per WhatsApp, o scaricare un file CSV/PDF con tutte le spese della sezione attiva.</p>
+  </div>
+</div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut,
+  sendPasswordResetEmail, updatePassword, createUserWithEmailAndPassword
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+import {
+  getFirestore, collection, doc, getDoc, setDoc, addDoc, updateDoc,
+  deleteDoc, query, where, orderBy, onSnapshot, serverTimestamp,
+  arrayUnion, arrayRemove
+} from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBJ7IlRapDDrkPtkm7iyUq3kcQhIUqU8Q0",
+  authDomain: "spese-tra-amiche.firebaseapp.com",
+  projectId: "spese-tra-amiche",
+  storageBucket: "spese-tra-amiche.firebasestorage.app",
+  messagingSenderId: "425715248644",
+  appId: "1:425715248644:web:83ef87f5c3d2b00af5cf51"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+// Istanza secondaria isolata, usata solo per creare nuovi utenti senza
+// disconnettere la sessione dell'amministratrice corrente
+const secondaryApp = initializeApp(firebaseConfig, 'Secondary');
+const secondaryAuth = getAuth(secondaryApp);
+
+// ---------- CONFIGURAZIONE SEZIONI ----------
+const SECTIONS = [
+  { id:'amiche', label:'Amiche', emoji:'👭' },
+  { id:'manfre', label:'Manfre', emoji:'👪' },
+  { id:'luna',   label:'Luna',   emoji:'👪' }
+];
+function sectionLabel(id){ const s = SECTIONS.find(x=>x.id===id); return s ? s.label : id; }
+
+// ---------- STATO GLOBALE ----------
+let userDoc = null;      // { role, sezioniAbilitate }
+let userEmail = null;
+let curSec = null;       // 'amiche' | 'parenti'
+let friends = [];        // persone della sezione attiva
+let categories = [];     // categorie della sezione attiva
+let expenses = [];       // spese della sezione attiva
+let settlements = [];    // saldi della sezione attiva
+let unsubs = [];         // listener attivi da fermare al cambio sezione
+let editIdx = null;      // id spesa in modifica
+let curPM = 'cash';
+let curCat = null;
+let compGroups = [];     // gruppi di compensazione della sezione attiva
+let selectionMode = false;
+let selectedExpIds = new Set();
+
+window.setPM = function(v){
+  curPM=v;
+  document.querySelectorAll('.paybtn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pm-'+v).classList.add('active');
+};
+
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ---------- LOGIN ----------
+document.getElementById('btn-login').addEventListener('click', async ()=>{
+  const email = document.getElementById('li-email').value.trim();
+  const pass = document.getElementById('li-pass').value;
+  const errEl = document.getElementById('li-err');
+  errEl.innerHTML='';
+  if(!email || !pass){ errEl.innerHTML='<div class="err">Inserisci email e password.</div>'; return; }
+  try{
+    await signInWithEmailAndPassword(auth, email, pass);
+  }catch(e){
+    errEl.innerHTML='<div class="err">Accesso non riuscito. Controlla email e password.</div>';
+  }
+});
+document.getElementById('btn-forgot').addEventListener('click', async ()=>{
+  const email = document.getElementById('li-email').value.trim();
+  const errEl = document.getElementById('li-err');
+  if(!email){ errEl.innerHTML='<div class="err">Inserisci la tua email nel campo sopra, poi tocca di nuovo qui.</div>'; return; }
+  try{
+    await sendPasswordResetEmail(auth, email);
+    errEl.innerHTML='<div class="aok">Email di reset inviata, controlla la posta.</div>';
+  }catch(e){
+    errEl.innerHTML='<div class="err">Non è stato possibile inviare l\'email di reset.</div>';
+  }
+});
+document.getElementById('btn-logout').addEventListener('click', ()=>signOut(auth));
+document.getElementById('btn-logout-sec').addEventListener('click', ()=>signOut(auth));
+document.getElementById('btn-change-pass').addEventListener('click', async ()=>{
+  const nuova = prompt('Inserisci la nuova password (almeno 6 caratteri):');
+  if(!nuova) return;
+  if(nuova.length<6){ alert('La password deve avere almeno 6 caratteri.'); return; }
+  try{
+    await updatePassword(auth.currentUser, nuova);
+    alert('Password aggiornata.');
+  }catch(e){
+    alert('Non è stato possibile aggiornare la password. Potrebbe essere necessario rifare il login prima di cambiarla, per motivi di sicurezza. Esci e rientra, poi riprova.');
+  }
+});
+
+onAuthStateChanged(auth, async (u)=>{
+  if(!u){
+    userDoc=null; curSec=null; stopListeners();
+    go('s-login');
+    document.getElementById('tabbar').style.display='none';
+    return;
+  }
+  userEmail = u.email;
+  try{
+    const snap = await getDoc(doc(db,'authorizedEmails', userEmail));
+    if(!snap.exists()){
+      document.getElementById('li-err').innerHTML='<div class="err">Il tuo account non è abilitato a nessuna sezione. Contatta l\'amministratrice.</div>';
+      await signOut(auth);
+      return;
+    }
+    userDoc = snap.data();
+  }catch(e){
+    document.getElementById('li-err').innerHTML='<div class="err">Errore nel controllo dei permessi. Riprova.</div>';
+    await signOut(auth);
+    return;
+  }
+  const sez = userDoc.sezioniAbilitate || [];
+  const mySections = SECTIONS.filter(s => sez.includes(s.id));
+  document.getElementById('sectab-container').innerHTML = mySections.map(s=>
+    `<button class="sectabbtn" id="sec-${s.id}">${s.emoji} ${s.label}</button>`
+  ).join('');
+  mySections.forEach(s=>{
+    document.getElementById('sec-'+s.id).addEventListener('click', ()=>openSection(s.id));
+  });
+  if(mySections.length===1){
+    openSection(mySections[0].id);
+  } else if(mySections.length>1){
+    go('s-section');
+  } else {
+    document.getElementById('li-err').innerHTML='<div class="err">Nessuna sezione abilitata per questo account.</div>';
+    await signOut(auth);
+  }
+});
+
+document.getElementById('btn-switch-sec').addEventListener('click', ()=>{
+  stopListeners();
+  go('s-section');
+});
+
+function stopListeners(){ unsubs.forEach(u=>u()); unsubs=[]; }
+
+function openSection(sec){
+  stopListeners();
+  curSec = sec;
+  selectionMode = false; selectedExpIds = new Set();
+  document.getElementById('home-title').textContent = sectionLabel(sec);
+  document.getElementById('btn-switch-sec').style.display = (userDoc.sezioniAbilitate||[]).length>1 ? 'inline' : 'none';
+  document.getElementById('tabbar').style.display='flex';
+  const isAdmin = userDoc.role==='admin';
+  document.getElementById('nav-admin').style.display = isAdmin ? 'flex' : 'none';
+  go('s-home'); tab('spese');
+
+  const qF = query(collection(db,'friends'), where('sezione','==',sec));
+  unsubs.push(onSnapshot(qF, snap=>{
+    friends = snap.docs.map(d=>({id:d.id,...d.data()})).filter(f=>f.active!==false)
+      .sort((a,b)=>a.name.localeCompare(b.name));
+    renderAdminFriends(); renderExpFormOptions(); renderExps(); renderBal();
+  }));
+  const qC = query(collection(db,'categories'), where('sezione','==',sec));
+  unsubs.push(onSnapshot(qC, snap=>{
+    categories = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(a.order||0)-(b.order||0));
+    renderAdminCats(); renderExpFormOptions();
+  }));
+  const qE = query(collection(db,'expenses'), where('sezione','==',sec));
+  unsubs.push(onSnapshot(qE, snap=>{
+    expenses = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    renderExps(); renderBal();
+  }));
+  const qS = query(collection(db,'settlements'), where('sezione','==',sec));
+  unsubs.push(onSnapshot(qS, snap=>{
+    settlements = snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+    renderHist(); renderBal();
+  }));
+  const qG = query(collection(db,'compensationGroups'), where('sezione','==',sec));
+  unsubs.push(onSnapshot(qG, snap=>{
+    compGroups = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderExps(); renderBal();
+  }));
+  if(isAdmin){
+    const qA = query(collection(db,'authorizedEmails'));
+    unsubs.push(onSnapshot(qA, snap=>{
+      const all = snap.docs.map(d=>({id:d.id,...d.data()}));
+      renderAdminAuth(all);
+    }));
+  }
+}
+
+// ---------- TABS ----------
+document.getElementById('t-spese').addEventListener('click', ()=>tab('spese'));
+document.getElementById('t-bilancio').addEventListener('click', ()=>tab('bilancio'));
+document.getElementById('t-storico').addEventListener('click', ()=>tab('storico'));
+function tab(name){
+  ['spese','bilancio','storico'].forEach(x=>{
+    document.getElementById('tc-'+x).style.display = x===name?'block':'none';
+    document.getElementById('t-'+x).classList.toggle('on', x===name);
+  });
+}
+document.getElementById('nav-home').addEventListener('click', ()=>{go('s-home');setNav('nav-home');});
+document.getElementById('nav-export').addEventListener('click', ()=>{go('s-export');setNav('nav-export');});
+document.getElementById('nav-admin').addEventListener('click', ()=>{go('s-admin');setNav('nav-admin');});
+document.getElementById('nav-help').addEventListener('click', ()=>{go('s-help');setNav('nav-help');});
+document.getElementById('btn-back-help').addEventListener('click', ()=>{go('s-home');setNav('nav-home');});
+function setNav(id){document.querySelectorAll('.tabbtn').forEach(b=>b.classList.remove('on'));document.getElementById(id).classList.add('on');}
+document.getElementById('btn-back-export').addEventListener('click', ()=>{go('s-home');setNav('nav-home');});
+document.getElementById('btn-back-admin').addEventListener('click', ()=>{go('s-home');setNav('nav-home');});
+document.getElementById('btn-back-exp').addEventListener('click', ()=>{go('s-home');setNav('nav-home');});
+
+// ---------- SPESE: elenco ----------
+function catBy(id){ return categories.find(c=>c.id===id) || {label:'Altro'}; }
+function fmtDate(iso){ if(!iso) return ''; const[y,m,d]=iso.split('-'); return d+'/'+m+'/'+y; }
+
+document.getElementById('btn-toggle-select').addEventListener('click', ()=>{
+  selectionMode = !selectionMode;
+  selectedExpIds = new Set();
+  document.getElementById('btn-toggle-select').textContent = selectionMode ? 'Annulla selezione' : 'Seleziona spese da compensare';
+  renderExps();
+});
+
+function openGroupOf(expenseId){
+  const e = expenses.find(x=>x.id===expenseId);
+  if(!e || !e.compGroupId) return null;
+  const g = compGroups.find(x=>x.id===e.compGroupId);
+  return (g && g.status==='open') ? g : null;
+}
+
+function renderSelectionBar(){
+  const bar = document.getElementById('selection-bar');
+  if(!selectionMode || selectedExpIds.size===0){ bar.style.display='none'; bar.innerHTML=''; return; }
+  bar.style.display='block';
+  const openGroups = compGroups.filter(g=>g.status==='open');
+  bar.innerHTML = `<div class="card" style="background:var(--g50);">
+    <div style="font-size:14px;margin-bottom:8px;">${selectedExpIds.size} spesa/e selezionata/e</div>
+    <button class="btns btnp" id="btn-create-group" style="margin-bottom:6px;">Crea nuovo gruppo di compensazione</button>
+    ${openGroups.length ? `<div style="margin-top:6px;">
+      <label style="font-size:13px;">Oppure aggiungi al gruppo esistente:</label>
+      <select id="add-to-group-sel">${openGroups.map(g=>`<option value="${g.id}">${g.label}</option>`).join('')}</select>
+      <button class="btns" id="btn-add-to-group">Aggiungi</button>
+    </div>` : ''}
+  </div>`;
+  document.getElementById('btn-create-group').addEventListener('click', createCompensationGroup);
+  if(openGroups.length){
+    document.getElementById('btn-add-to-group').addEventListener('click', ()=>{
+      const gid = document.getElementById('add-to-group-sel').value;
+      addExpensesToGroup(gid);
+    });
+  }
+}
+
+async function createCompensationGroup(){
+  const ids = Array.from(selectedExpIds);
+  const sel = expenses.filter(e=>ids.includes(e.id));
+  const members = new Set();
+  sel.forEach(e=>{ members.add(e.payer); (e.participants||[]).forEach(p=>members.add(p)); });
+  const today = new Date().toISOString().split('T')[0];
+  const label = `Gruppo del ${fmtDate(today)} (${Array.from(members).join(', ')})`;
+  try{
+    const gref = await addDoc(collection(db,'compensationGroups'), {
+      sezione:curSec, label, memberNames:Array.from(members), expenseIds:ids, status:'open', createdAt:serverTimestamp()
+    });
+    for(const id of ids){ await updateDoc(doc(db,'expenses',id), { compGroupId:gref.id }); }
+    selectionMode=false; selectedExpIds=new Set();
+    document.getElementById('btn-toggle-select').textContent = 'Seleziona spese da compensare';
+    renderExps();
+  }catch(e){ alert('Errore nella creazione del gruppo: '+e.message); }
+}
+
+async function addExpensesToGroup(groupId){
+  const ids = Array.from(selectedExpIds);
+  const g = compGroups.find(x=>x.id===groupId);
+  if(!g) return;
+  const sel = expenses.filter(e=>ids.includes(e.id));
+  const members = new Set(g.memberNames||[]);
+  sel.forEach(e=>{ members.add(e.payer); (e.participants||[]).forEach(p=>members.add(p)); });
+  try{
+    await updateDoc(doc(db,'compensationGroups',groupId), { expenseIds:arrayUnion(...ids), memberNames:Array.from(members) });
+    for(const id of ids){ await updateDoc(doc(db,'expenses',id), { compGroupId:groupId }); }
+    selectionMode=false; selectedExpIds=new Set();
+    document.getElementById('btn-toggle-select').textContent = 'Seleziona spese da compensare';
+    renderExps();
+  }catch(e){ alert('Errore nell\'aggiunta al gruppo: '+e.message); }
+}
+
+function renderExps(){
+  const tot = expenses.reduce((s,e)=>s+(e.amount||0),0);
+  document.getElementById('mtot').textContent = '€'+tot.toFixed(2);
+  document.getElementById('mcnt').textContent = expenses.length;
+  const pc = friends.length ? tot/friends.length : 0;
+  document.getElementById('mpc').textContent = '€'+pc.toFixed(2);
+  const el = document.getElementById('explist');
+  if(!expenses.length){ el.innerHTML='<div style="padding:1rem 0;text-align:center;color:#666;font-size:14px;">Nessuna spesa ancora</div>'; renderSelectionBar(); return; }
+  el.innerHTML = expenses.map(e=>{
+    const c = catBy(e.cat);
+    const grp = openGroupOf(e.id);
+    const highlighted = !!grp;
+    const canSelect = selectionMode && !grp;
+    const checked = selectedExpIds.has(e.id) ? 'checked' : '';
+    return `<div class="expitem" style="${highlighted?'background:var(--g50);border-radius:10px;padding-left:8px;padding-right:8px;':''}">
+      <div class="expmain">
+      <div style="min-width:0;flex:1;display:flex;align-items:flex-start;gap:8px;">
+        ${canSelect?`<input type="checkbox" class="sel-exp" data-id="${e.id}" ${checked} style="margin-top:3px;">`:''}
+        <div><span class="catbadge">${c.label}</span>${e.desc?`<span style="font-size:15px;font-weight:500;">${e.desc}</span>`:''}
+        ${grp?`<div style="font-size:11px;color:var(--g600);margin-top:2px;">🔗 ${grp.label}</div>`:''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px;">
+        <div style="font-size:15px;font-weight:600;color:var(--g600);">€${(e.amount||0).toFixed(2)}</div>
+        ${!selectionMode?`<span class="edit-exp" data-id="${e.id}" style="cursor:pointer;font-size:16px;">✏️</span>
+        <span class="del-exp" data-id="${e.id}" style="cursor:pointer;color:#E74C3C;font-size:20px;line-height:1;">&times;</span>`:''}
+      </div></div>
+      <div class="expmeta"><b>${fmtDate(e.date)}</b> · ${e.pm==='card'?'💳':'💶'} · Pagato da <b>${e.payer}</b> · Divide: ${(e.participants||[]).join(', ')}</div>
+    </div>`;
+  }).join('');
+  document.querySelectorAll('.del-exp').forEach(b=>b.addEventListener('click', ()=>delExp(b.dataset.id)));
+  document.querySelectorAll('.edit-exp').forEach(b=>b.addEventListener('click', ()=>editExp(b.dataset.id)));
+  document.querySelectorAll('.sel-exp').forEach(b=>b.addEventListener('change', ()=>{
+    if(b.checked) selectedExpIds.add(b.dataset.id); else selectedExpIds.delete(b.dataset.id);
+    renderSelectionBar();
+  }));
+  renderSelectionBar();
+}
+async function delExp(id){
+  if(!confirm('Eliminare questa spesa?')) return;
+  await deleteDoc(doc(db,'expenses',id));
+}
+
+
+// ---------- FORM SPESA ----------
+document.getElementById('btn-add-exp').addEventListener('click', ()=>{ editIdx=null; openExpForm(); });
+function openExpForm(){
+  document.querySelector('#s-exp .btitle').textContent = editIdx? 'Modifica spesa':'Nuova spesa';
+  document.getElementById('ed').value=''; document.getElementById('eamt').value='';
+  document.getElementById('edate').value = new Date().toISOString().split('T')[0];
+  curPM='cash'; document.querySelectorAll('.paybtn').forEach(b=>b.classList.remove('active')); document.getElementById('pm-cash').classList.add('active');
+  curCat = categories[0]? categories[0].id : null;
+  document.getElementById('exp-err').innerHTML='';
+  renderExpFormOptions();
+  go('s-exp');
+}
+function renderExpFormOptions(){
+  document.getElementById('ecatchips').innerHTML = categories.map(c=>
+    `<span class="chip selc" data-cat="${c.id}" style="cursor:pointer;${curCat===c.id?'background:var(--g400);color:#fff;border-color:var(--g400);':''}">${c.label}</span>`
+  ).join('');
+  document.querySelectorAll('#ecatchips .chip').forEach(ch=>{
+    ch.addEventListener('click', function(){ curCat=this.dataset.cat; renderExpFormOptions(); });
+  });
+  document.getElementById('epay').innerHTML = '<option value="" disabled selected>Seleziona chi ha pagato</option>' +
+    friends.map(f=>`<option value="${f.name}">${f.name}</option>`).join('');
+  document.getElementById('eparts').innerHTML = friends.map(f=>
+    `<div class="partchip" data-name="${f.name}" onclick="this.classList.toggle('on')">${f.name}</div>`
+  ).join('');
+}
+document.getElementById('btn-all').addEventListener('click', ()=>document.querySelectorAll('.partchip').forEach(c=>c.classList.add('on')));
+document.getElementById('btn-none').addEventListener('click', ()=>document.querySelectorAll('.partchip').forEach(c=>c.classList.remove('on')));
+
+function editExp(id){
+  const e = expenses.find(x=>x.id===id);
+  if(!e) return;
+  editIdx = id;
+  openExpForm();
+  setTimeout(()=>{
+    document.getElementById('ed').value = e.desc||'';
+    document.getElementById('eamt').value = e.amount||'';
+    document.getElementById('edate').value = e.date||'';
+    document.getElementById('epay').value = e.payer;
+    curCat = e.cat; renderExpFormOptions();
+    curPM = e.pm||'cash';
+    document.querySelectorAll('.paybtn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('pm-'+curPM).classList.add('active');
+    document.querySelectorAll('.partchip').forEach(c=>{
+      if((e.participants||[]).includes(c.dataset.name)) c.classList.add('on'); else c.classList.remove('on');
+    });
+  },30);
+}
+
+document.getElementById('btn-save-exp').addEventListener('click', async ()=>{
+  const amt = parseFloat(document.getElementById('eamt').value);
+  const date = document.getElementById('edate').value;
+  const payer = document.getElementById('epay').value;
+  const desc = document.getElementById('ed').value.trim();
+  const parts = Array.from(document.querySelectorAll('.partchip.on')).map(c=>c.dataset.name);
+  const errEl = document.getElementById('exp-err'); errEl.innerHTML='';
+  if(!amt || amt<=0){ errEl.innerHTML='<div class="err">Inserisci un importo valido.</div>'; return; }
+  if(!curCat){ errEl.innerHTML='<div class="err">Seleziona una categoria.</div>'; return; }
+  if(!payer){ errEl.innerHTML='<div class="err">Seleziona chi ha pagato.</div>'; return; }
+  if(!parts.length){ errEl.innerHTML='<div class="err">Seleziona almeno un partecipante.</div>'; return; }
+  const data = { sezione:curSec, desc, cat:curCat, amount:amt, payer, participants:parts, date, pm:curPM };
+  try{
+    if(editIdx){ await updateDoc(doc(db,'expenses',editIdx), data); }
+    else{ data.createdAt = serverTimestamp(); data.settledPairs=[]; await addDoc(collection(db,'expenses'), data); }
+    editIdx=null;
+    go('s-home'); setNav('nav-home'); tab('spese');
+  }catch(e){ errEl.innerHTML='<div class="err">Errore nel salvataggio. Riprova.</div>'; }
+});
+
+// ---------- MOTORE DI BILANCIO A COPPIE ----------
+function pairKey(a,b){ return [a,b].sort().join('_'); }
+
+// Per ogni coppia, calcola il saldo netto (positivo = il secondo nome deve al primo in ordine alfabetico... normalizziamo: ritorna mappa key->{a,b,net} dove net>0 vuol dire b deve ad a)
+function computePairBalances(){
+  const pairs = {}; // key -> {names:[a,b] ordinati alfab, net} net = quanto il secondo deve al primo (puo' essere negativo)
+  expenses.forEach(e=>{
+    if(e.compGroupId) return; // gestita separatamente da un gruppo di compensazione
+    const parts = e.participants || [];
+    if(!parts.length) return;
+    const share = (e.amount||0) / parts.length;
+    const already = e.settledPairs || [];
+    parts.forEach(p=>{
+      if(p === e.payer) return;
+      const key = pairKey(p, e.payer);
+      if(already.includes(key)) return; // già saldata per questa coppia
+      const [a,b] = key.split('_');
+      if(!pairs[key]) pairs[key] = {a,b,net:0};
+      // p deve "share" a e.payer
+      if(a === e.payer){ pairs[key].net += share; } // b deve ad a
+      else { pairs[key].net -= share; } // a deve a b -> net negativo
+    });
+  });
+  return pairs;
+}
+
+// Calcola i saldi netti individuali (non a coppie) per un insieme di spese date, poi ottimizza il numero di transazioni
+function calcOptimizedTransactions(exps){
+  const bal = {};
+  exps.forEach(e=>{
+    const parts = e.participants || [];
+    if(!parts.length) return;
+    const share = (e.amount||0) / parts.length;
+    bal[e.payer] = (bal[e.payer]||0) + (e.amount||0);
+    parts.forEach(p=>{ bal[p] = (bal[p]||0) - share; });
+  });
+  const pos=[], neg=[];
+  Object.entries(bal).forEach(([p,v])=>{ if(v>0.01) pos.push({p,v}); else if(v<-0.01) neg.push({p,v:-v}); });
+  const tr=[]; let i=0,j=0;
+  while(i<pos.length && j<neg.length){
+    const a = Math.min(pos[i].v, neg[j].v);
+    tr.push({from:neg[j].p, to:pos[i].p, amount:a});
+    pos[i].v-=a; neg[j].v-=a;
+    if(pos[i].v<0.01) i++;
+    if(neg[j].v<0.01) j++;
+  }
+  return tr;
+}
+
+function renderCompGroups(){
+  const openGroups = compGroups.filter(g=>g.status==='open');
+  if(!openGroups.length) return '';
+  return openGroups.map(g=>{
+    const exps = expenses.filter(e=>(g.expenseIds||[]).includes(e.id));
+    const tr = calcOptimizedTransactions(exps);
+    return `<div class="card" style="border:1.5px solid var(--g400);">
+      <div class="st">🔗 ${g.label}</div>
+      ${exps.map(e=>`<div style="font-size:12px;color:#666;">${fmtDate(e.date)} — ${e.desc||catBy(e.cat).label}: €${(e.amount||0).toFixed(2)}</div>`).join('')}
+      <div style="margin-top:10px;">
+      ${tr.length ? tr.map(t=>`<div class="trrow"><div><b>${t.from}</b> deve a <b>${t.to}</b><div style="font-size:12px;color:#999;">€${t.amount.toFixed(2)}</div></div></div>`).join('') : '<div style="font-size:13px;color:#666;">Gruppo in pari</div>'}
+      </div>
+      <button class="btns btng" data-gid="${g.id}" style="margin-top:8px;margin-right:6px;">+ Aggiungi spese (usa "Seleziona spese" nella lista)</button>
+      <button class="btns btnp" data-close-gid="${g.id}" style="margin-top:8px;">Salda gruppo</button>
+    </div>`;
+  }).join('');
+}
+
+async function closeCompGroup(groupId){
+  const g = compGroups.find(x=>x.id===groupId);
+  if(!g) return;
+  const exps = expenses.filter(e=>(g.expenseIds||[]).includes(e.id));
+  const tr = calcOptimizedTransactions(exps);
+  if(!confirm(`Confermi il saldo del gruppo "${g.label}"? Verranno registrate ${tr.length} transazione/i nello storico.`)) return;
+  try{
+    for(const t of tr){
+      await addDoc(collection(db,'settlements'), {
+        sezione:curSec, personA:t.to, personB:t.from, amount:t.amount, date:new Date().toISOString().split('T')[0],
+        coveredExpenses: exps.map(e=>({expenseId:e.id, desc:e.desc||catBy(e.cat).label, date:e.date, amountForPair:e.amount})),
+        createdAt:serverTimestamp(), type:'group', groupId:groupId
+      });
+    }
+    await updateDoc(doc(db,'compensationGroups',groupId), { status:'closed', closedAt:serverTimestamp() });
+  }catch(e){ alert('Errore nel saldo del gruppo: '+e.message); }
+}
+
+function renderBal(){
+  const pairs = computePairBalances();
+  const rows = Object.values(pairs).filter(p=>Math.abs(p.net) > 0.01);
+  const el = document.getElementById('balcont');
+  const groupsHtml = renderCompGroups();
+  const rowsHtml = rows.length ? rows.map(p=>{
+    const debtor = p.net>0 ? p.b : p.a;
+    const creditor = p.net>0 ? p.a : p.b;
+    const amt = Math.abs(p.net);
+    return `<div class="trrow"><div><b>${debtor}</b> deve a <b>${creditor}</b><div style="font-size:12px;color:#999;">€${amt.toFixed(2)}</div></div>
+      <button class="btns btnp" data-a="${p.a}" data-b="${p.b}" data-amt="${amt.toFixed(2)}">Salda</button></div>`;
+  }).join('') : '<div style="padding:8px 0;font-size:14px;color:#666;">Tutti in pari!</div>';
+  el.innerHTML = groupsHtml + rowsHtml;
+  document.querySelectorAll('#balcont [data-a]').forEach(btn=>{
+    btn.addEventListener('click', ()=>settlePair(btn.dataset.a, btn.dataset.b, parseFloat(btn.dataset.amt)));
+  });
+  document.querySelectorAll('#balcont [data-close-gid]').forEach(btn=>{
+    btn.addEventListener('click', ()=>closeCompGroup(btn.dataset.closeGid));
+  });
+}
+
+async function settlePair(a,b,amt){
+  if(!confirm(`Confermi il saldo di €${amt.toFixed(2)} tra ${a} e ${b}? Tutte le spese in sospeso tra loro verranno consolidate in un'unica operazione.`)) return;
+  const key = pairKey(a,b);
+  const covered = [];
+  const batchUpdates = [];
+  expenses.forEach(e=>{
+    if(e.compGroupId) return; // gestita dal suo gruppo di compensazione
+    const parts = e.participants||[];
+    const already = e.settledPairs||[];
+    if(already.includes(key)) return;
+    const involvesPair = (parts.includes(a) && e.payer===b) || (parts.includes(b) && e.payer===a);
+    if(!involvesPair) return;
+    const share = (e.amount||0)/parts.length;
+    covered.push({ expenseId:e.id, desc:e.desc||catBy(e.cat).label, date:e.date, amountForPair: share });
+    batchUpdates.push({ id:e.id, newSettled:[...already, key] });
+  });
+  try{
+    for(const u of batchUpdates){
+      await updateDoc(doc(db,'expenses',u.id), { settledPairs:u.newSettled });
+    }
+    await addDoc(collection(db,'settlements'), {
+      sezione:curSec, personA:a, personB:b, amount:amt, date:new Date().toISOString().split('T')[0],
+      coveredExpenses:covered, createdAt:serverTimestamp(), type:'pair', pairKey:key
+    });
+  }catch(e){ alert('Errore nel salvataggio del saldo. Riprova.'); }
+}
+
+// ---------- STORICO ----------
+function renderHist(){
+  const el = document.getElementById('histcont');
+  if(!settlements.length){ el.innerHTML='<div style="padding:8px 0;font-size:14px;color:#666;">Nessun saldo effettuato ancora</div>'; return; }
+  el.innerHTML = settlements.map(s=>`
+    <div class="expitem">
+      <div class="expmain"><div><b>${s.personA}</b> ↔ <b>${s.personB}</b></div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="font-weight:600;color:var(--g600);">€${(s.amount||0).toFixed(2)}</div>
+          <span class="del-settle" data-id="${s.id}" style="cursor:pointer;color:#E74C3C;font-size:18px;">&times;</span>
+        </div>
+      </div>
+      <div class="expmeta">${fmtDate(s.date)}${s.type==='group'?' · saldo di gruppo':''}</div>
+      <div class="settlecard">${(s.coveredExpenses||[]).map(c=>`${fmtDate(c.date)} — ${c.desc}: €${(c.amountForPair||0).toFixed(2)}`).join('<br>')}</div>
+    </div>`).join('');
+  document.querySelectorAll('.del-settle').forEach(b=>b.addEventListener('click', ()=>undoSettlement(b.dataset.id)));
+}
+
+async function undoSettlement(settlementId){
+  const s = settlements.find(x=>x.id===settlementId);
+  if(!s) return;
+  if(!confirm('Annullare questo saldo? Il debito coperto tornerà visibile nel bilancio.')) return;
+  try{
+    if(s.type==='group' && s.groupId){
+      await updateDoc(doc(db,'compensationGroups', s.groupId), { status:'open' });
+    } else {
+      const key = s.pairKey || pairKey(s.personA, s.personB);
+      for(const c of (s.coveredExpenses||[])){
+        await updateDoc(doc(db,'expenses', c.expenseId), { settledPairs: arrayRemove(key) });
+      }
+    }
+    await deleteDoc(doc(db,'settlements', settlementId));
+  }catch(e){ alert('Errore nell\'annullamento del saldo: '+e.message); }
+}
+
+// ---------- ADMIN: persone ----------
+function renderAdminFriends(){
+  const el = document.getElementById('admin-friends');
+  if(!el) return;
+  el.innerHTML = friends.map(f=>`<span class="chip">${f.name} <span class="rm" data-id="${f.id}" data-kind="friend">&times;</span></span>`).join('') || '<div style="font-size:13px;color:#999;">Nessuna persona ancora</div>';
+  el.querySelectorAll('.rm[data-kind="friend"]').forEach(b=>b.addEventListener('click', ()=>removeFriend(b.dataset.id)));
+}
+async function removeFriend(id){
+  const f = friends.find(x=>x.id===id);
+  if(!f) return;
+  if(!confirm(`Rimuovere "${f.name}" dal gruppo? Le spese passate che la coinvolgono restano nello storico.`)) return;
+  await deleteDoc(doc(db,'friends',id));
+}
+document.getElementById('btn-add-friend').addEventListener('click', async ()=>{
+  const inp = document.getElementById('new-friend');
+  const name = inp.value.trim();
+  if(!name) return;
+  await addDoc(collection(db,'friends'), { name, sezione:curSec, active:true, addedAt:serverTimestamp() });
+  inp.value='';
+});
+
+// ---------- ADMIN: categorie ----------
+function renderAdminCats(){
+  const el = document.getElementById('admin-cats');
+  if(!el) return;
+  el.innerHTML = categories.map(c=>`<span class="chip">${c.label} <span class="rm" data-id="${c.id}" data-kind="cat">&times;</span></span>`).join('') || '<div style="font-size:13px;color:#999;">Nessuna categoria ancora</div>';
+  el.querySelectorAll('.rm[data-kind="cat"]').forEach(b=>b.addEventListener('click', ()=>removeCat(b.dataset.id)));
+}
+async function removeCat(id){
+  const c = categories.find(x=>x.id===id);
+  if(!c) return;
+  if(!confirm(`Eliminare la categoria "${c.label}"? Le spese passate con questa categoria restano invariate.`)) return;
+  await deleteDoc(doc(db,'categories',id));
+}
+document.getElementById('btn-add-cat').addEventListener('click', async ()=>{
+  const inp = document.getElementById('new-cat');
+  const label = inp.value.trim();
+  if(!label) return;
+  await addDoc(collection(db,'categories'), { label, sezione:curSec, order: categories.length });
+  inp.value='';
+});
+
+// ---------- ADMIN: accessi ----------
+function renderAdminAuth(all){
+  const el = document.getElementById('admin-auth');
+  if(!el) return;
+  el.innerHTML = all.map(a=>`<div class="balrow"><div>${a.id}</div><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;color:#666;">${(a.sezioniAbilitate||[]).join(', ')} ${a.role==='admin'?'· admin':''}</span>${a.id!==userEmail?`<span class="rm" data-email="${a.id}" style="cursor:pointer;color:#E74C3C;font-size:18px;">&times;</span>`:''}</div></div>`).join('') || '<div style="font-size:13px;color:#999;">Nessun accesso configurato</div>';
+  el.querySelectorAll('.rm[data-email]').forEach(b=>b.addEventListener('click', ()=>removeAuth(b.dataset.email)));
+}
+async function removeAuth(email){
+  if(!confirm(`Revocare l'accesso a ${email}?`)) return;
+  await deleteDoc(doc(db,'authorizedEmails',email));
+}
+
+const SEED_DATA = {
+  amiche: {
+    friends: ['Simona','Ornella','Paola','Claudia','Silvana','Chiara','Massimo'],
+    cats: ['Cinema','Teatro','Concerti','Musei','Ristoranti','Supermercato','Acquisti','Altro']
+  },
+  manfre: {
+    friends: ['Simona','Alessandro','Betty','Federico'],
+    cats: ['Ristorante','Supermercato','Altro']
+  },
+  luna: {
+    friends: ['Simona','Cristina','Alfonsa'],
+    cats: ['Ristorante','Supermercato','Altro']
+  }
+};
+document.getElementById('btn-seed').addEventListener('click', async ()=>{
+  const seed = SEED_DATA[curSec];
+  if(!seed) return;
+  if(!confirm(`Caricare i dati iniziali della sezione ${curSec}? Le persone/categorie già presenti non verranno duplicate.`)) return;
+  const existingFriendNames = friends.map(f=>f.name);
+  const existingCatLabels = categories.map(c=>c.label);
+  for(const name of seed.friends){
+    if(!existingFriendNames.includes(name)){
+      await addDoc(collection(db,'friends'), { name, sezione:curSec, active:true, addedAt:serverTimestamp() });
+    }
+  }
+  for(let i=0;i<seed.cats.length;i++){
+    const label = seed.cats[i];
+    if(!existingCatLabels.includes(label)){
+      await addDoc(collection(db,'categories'), { label, sezione:curSec, order:i });
+    }
+  }
+  alert('Dati iniziali caricati.');
+});
+document.getElementById('new-auth-sec-checks').innerHTML = SECTIONS.map(s=>
+  `<label class="chip" style="cursor:pointer;"><input type="checkbox" value="${s.id}" class="auth-sec-check" style="margin-right:4px;">${s.emoji} ${s.label}</label>`
+).join('');
+
+document.getElementById('new-user-sec-checks').innerHTML = SECTIONS.map(s=>
+  `<label class="chip" style="cursor:pointer;"><input type="checkbox" value="${s.id}" class="new-user-sec-check" style="margin-right:4px;">${s.emoji} ${s.label}</label>`
+).join('');
+document.getElementById('btn-create-user').addEventListener('click', async ()=>{
+  const email = document.getElementById('new-user-email').value.trim();
+  const pass = document.getElementById('new-user-pass').value;
+  const sez = Array.from(document.querySelectorAll('.new-user-sec-check:checked')).map(c=>c.value);
+  const fb = document.getElementById('new-user-fb');
+  fb.innerHTML='';
+  if(!email || !pass){ fb.innerHTML='<div class="err">Inserisci email e password.</div>'; return; }
+  if(pass.length<6){ fb.innerHTML='<div class="err">La password deve avere almeno 6 caratteri.</div>'; return; }
+  if(!sez.length){ fb.innerHTML='<div class="err">Seleziona almeno una sezione.</div>'; return; }
+  const btn = document.getElementById('btn-create-user');
+  btn.disabled=true; btn.textContent='Creazione in corso...';
+  try{
+    await createUserWithEmailAndPassword(secondaryAuth, email, pass);
+    await signOut(secondaryAuth);
+    await setDoc(doc(db,'authorizedEmails', email), { role: document.getElementById('new-user-is-admin').checked ? 'admin' : 'member', sezioniAbilitate:sez, addedAt:serverTimestamp() });
+    fb.innerHTML='<div class="aok">Utente creato e abilitato! Comunica email e password alla persona.</div>';
+    document.getElementById('new-user-email').value='';
+    document.getElementById('new-user-pass').value='';
+    document.getElementById('new-user-is-admin').checked=false;
+    document.querySelectorAll('.new-user-sec-check').forEach(c=>c.checked=false);
+  }catch(e){
+    let msg = e.message;
+    if(e.code==='auth/email-already-in-use') msg = 'Questa email ha già un account. Usa il riquadro sotto per abilitarla a una sezione.';
+    fb.innerHTML='<div class="err">Errore: '+msg+'</div>';
+  }
+  btn.disabled=false; btn.textContent='Crea utente e abilita accesso';
+});
+document.getElementById('btn-add-auth').addEventListener('click', async ()=>{
+  const email = document.getElementById('new-auth-email').value.trim();
+  const sezSelezionate = Array.from(document.querySelectorAll('.auth-sec-check:checked')).map(c=>c.value);
+  if(!email){ alert('Inserisci un\'email.'); return; }
+  if(!sezSelezionate.length){ alert('Seleziona almeno una sezione.'); return; }
+  try{
+    await setDoc(doc(db,'authorizedEmails', email), { sezioniAbilitate:sezSelezionate, addedAt:serverTimestamp() }, {merge:true});
+    document.getElementById('new-auth-email').value='';
+    document.querySelectorAll('.auth-sec-check').forEach(c=>c.checked=false);
+  }catch(e){
+    alert('Errore nel salvataggio: '+e.code+' — '+e.message);
+  }
+});
+
+// ---------- EXPORT ----------
+document.getElementById('btn-wa').addEventListener('click', ()=>{
+  const pairs = computePairBalances();
+  const rows = Object.values(pairs).filter(p=>Math.abs(p.net)>0.01);
+  let txt = `*Spese tra amiche — ${sectionLabel(curSec)}*\n\n*Chi deve pagare chi:*\n`;
+  if(!rows.length) txt += 'Tutti in pari!\n';
+  rows.forEach(p=>{
+    const debtor = p.net>0?p.b:p.a, creditor = p.net>0?p.a:p.b, amt=Math.abs(p.net);
+    txt += `• ${debtor} → ${creditor}: €${amt.toFixed(2)}\n`;
+  });
+  txt += `\n*Dettaglio spese:*\n`;
+  expenses.forEach(e=>{ txt += `• [${catBy(e.cat).label}] ${e.desc||''} — €${(e.amount||0).toFixed(2)} (pagato da ${e.payer})\n`; });
+  try{ navigator.clipboard.writeText(txt); }catch(x){}
+  document.getElementById('exp-fb').innerHTML='<div class="aok">Testo copiato! Incollalo su WhatsApp.</div>';
+  setTimeout(()=>document.getElementById('exp-fb').innerHTML='',3000);
+});
+document.getElementById('btn-csv').addEventListener('click', ()=>{
+  let csv='Data;Categoria;Descrizione;Metodo;Importo;Pagato da;Partecipanti\n';
+  expenses.forEach(e=>{ csv+=`"${e.date}";"${catBy(e.cat).label}";"${e.desc||''}";"${e.pm==='card'?'Carta':'Contanti'}";${(e.amount||0).toFixed(2)};"${e.payer}";"${(e.participants||[]).join(', ')}"\n`; });
+  const bom='\uFEFF'; const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([bom+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download=`spese_${curSec}.csv`; a.click();
+  document.getElementById('exp-fb').innerHTML='<div class="aok">CSV scaricato!</div>';
+  setTimeout(()=>document.getElementById('exp-fb').innerHTML='',3000);
+});
+document.getElementById('btn-pdf').addEventListener('click', ()=>{
+  const {jsPDF}=window.jspdf; const docx=new jsPDF(); let y=20;
+  docx.setFontSize(16); docx.text(`Spese tra amiche — ${sectionLabel(curSec)}`,14,y); y+=10;
+  docx.setFontSize(11);
+  expenses.forEach(e=>{
+    if(y>270){docx.addPage();y=20;}
+    docx.text(`${e.date} [${catBy(e.cat).label}] ${e.desc||''} — €${(e.amount||0).toFixed(2)} (${e.payer})`,14,y); y+=6;
+  });
+  docx.save(`spese_${curSec}.pdf`);
+  document.getElementById('exp-fb').innerHTML='<div class="aok">PDF scaricato!</div>';
+  setTimeout(()=>document.getElementById('exp-fb').innerHTML='',3000);
+});
+</script>
+</body>
+</html>

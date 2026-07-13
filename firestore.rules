@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function userDoc() {
+      return get(/databases/$(database)/documents/authorizedEmails/$(request.auth.token.email));
+    }
+    function isAuthorized() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/authorizedEmails/$(request.auth.token.email));
+    }
+    function isAdmin() {
+      return isAuthorized() && userDoc().data.role == 'admin';
+    }
+    function hasAccess(sezione) {
+      return isAuthorized() && sezione in userDoc().data.sezioniAbilitate;
+    }
+
+    match /authorizedEmails/{email} {
+      allow read: if isSignedIn() && (request.auth.token.email == email || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    match /friends/{id} {
+      allow read: if hasAccess(resource.data.sezione);
+      allow create: if hasAccess(request.resource.data.sezione);
+      allow update, delete: if hasAccess(resource.data.sezione) && isAdmin();
+    }
+
+    match /categories/{id} {
+      allow read: if hasAccess(resource.data.sezione);
+      allow create: if hasAccess(request.resource.data.sezione);
+      allow update, delete: if hasAccess(resource.data.sezione) && isAdmin();
+    }
+
+    match /expenses/{id} {
+      allow read: if hasAccess(resource.data.sezione);
+      allow create: if hasAccess(request.resource.data.sezione);
+      allow update, delete: if hasAccess(resource.data.sezione);
+    }
+
+    match /settlements/{id} {
+      allow read: if hasAccess(resource.data.sezione);
+      allow create: if hasAccess(request.resource.data.sezione);
+      allow update: if false;
+      allow delete: if hasAccess(resource.data.sezione);
+    }
+
+    match /compensationGroups/{id} {
+      allow read: if hasAccess(resource.data.sezione);
+      allow create: if hasAccess(request.resource.data.sezione);
+      allow update: if hasAccess(resource.data.sezione);
+      allow delete: if false;
+    }
+  }
+}
