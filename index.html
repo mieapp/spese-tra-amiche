@@ -65,6 +65,13 @@ label{font-size:13px;color:var(--g600);font-weight:500;display:block;margin-bott
 .nbtn.on{background:#fff;color:var(--g800);box-shadow:0 1px 4px rgba(111,143,92,0.20);}
 .sectab{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0;}
 .sectabbtn{flex:1;min-width:100px;padding:12px 8px;border-radius:var(--rmd);border:2px solid var(--g100);background:#fff;color:var(--g800);font-size:14px;font-weight:600;cursor:pointer;text-align:center;-webkit-tap-highlight-color:transparent;}
+.sectioncard{display:flex;align-items:center;gap:14px;width:100%;padding:18px;background:#fff;border:none;border-radius:var(--rlg);box-shadow:0 2px 12px rgba(63,86,54,0.10);margin-bottom:12px;cursor:pointer;text-align:left;-webkit-tap-highlight-color:transparent;transition:transform .1s;}
+.sectioncard:active{transform:scale(0.98);}
+.sectioncard .sc-icon{width:52px;height:52px;border-radius:50%;background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;}
+.sectioncard .sc-text{flex:1;}
+.sectioncard .sc-title{font-size:17px;font-weight:700;color:var(--g800);}
+.sectioncard .sc-sub{font-size:13px;color:#999;margin-top:2px;}
+.sectioncard .sc-arrow{color:var(--g400);font-size:20px;}
 .sectabbtn.on{background:var(--g400);border-color:var(--g400);color:#fff;}
 .ph{padding:20px 0 8px;}.ph h1{font-size:26px;font-weight:700;color:var(--g800);margin-bottom:2px;}.ph p{font-size:15px;color:var(--g600);}
 .brow{display:flex;align-items:center;gap:10px;padding:16px 0 10px;}
@@ -92,6 +99,14 @@ label{font-size:13px;color:var(--g600);font-weight:500;display:block;margin-bott
 .covimg{width:100%;border-radius:var(--rlg);margin-bottom:16px;}
 .link{color:var(--g600);font-size:14px;text-align:center;display:block;cursor:pointer;margin-top:6px;}
 .settlecard{background:var(--g50);border-radius:var(--rmd);padding:8px 10px;margin-top:6px;font-size:12px;color:#555;}
+.loginbanner{position:relative;border-radius:var(--rlg);overflow:hidden;margin:20px 0 22px;box-shadow:0 8px 24px rgba(63,86,54,0.18);}
+.loginbanner img{width:100%;display:block;aspect-ratio:4/3;object-fit:cover;}
+.loginbanner .overlay{position:absolute;inset:0;background:linear-gradient(to bottom, rgba(63,86,54,0.05) 40%, rgba(40,56,34,0.75) 100%);}
+.loginbanner .banner-text{position:absolute;bottom:0;left:0;right:0;padding:20px;}
+.loginbanner .banner-text h1{color:#fff;font-size:26px;font-weight:800;text-shadow:0 2px 8px rgba(0,0,0,0.3);margin-bottom:4px;}
+.loginbanner .banner-text p{color:rgba(255,255,255,0.92);font-size:14px;text-shadow:0 1px 4px rgba(0,0,0,0.3);}
+.logincard{border-radius:var(--rlg);}
+.logincard .btnp{margin-top:4px;}
 </style>
 </head>
 <body>
@@ -99,8 +114,15 @@ label{font-size:13px;color:var(--g600);font-weight:500;display:block;margin-bott
 
 <!-- LOGIN -->
 <div id="s-login" class="screen active">
-  <div class="ph" style="text-align:center;"><h1>Spese tra amiche</h1><p>Accedi con le tue credenziali</p></div>
-  <div class="card">
+  <div class="loginbanner">
+    <img src="./cover.png" alt="">
+    <div class="overlay"></div>
+    <div class="banner-text">
+      <h1>Spese tra amiche</h1>
+      <p>Dividete, segnate, saldate — senza pensieri</p>
+    </div>
+  </div>
+  <div class="card logincard">
     <label>Email</label><input type="email" id="li-email" autocomplete="username">
     <label>Password</label><input type="password" id="li-pass" autocomplete="current-password">
     <div id="li-err"></div>
@@ -113,8 +135,8 @@ label{font-size:13px;color:var(--g600);font-weight:500;display:block;margin-bott
 <!-- SELETTORE SEZIONE -->
 <div id="s-section" class="screen">
   <div class="topbar"><div></div><button class="logoutbtn" id="btn-logout-sec">Esci</button></div>
-  <div class="ph" style="text-align:center;"><h1>Spese tra amiche</h1><p>Scegli la sezione</p></div>
-  <div class="sectab" id="sectab-container"></div>
+  <div class="ph" style="text-align:center;"><h1>Ciao! 👋</h1><p>In quale spazio vuoi entrare?</p></div>
+  <div id="sectab-container"></div>
 </div>
 
 <!-- HOME / SPESE -->
@@ -306,9 +328,9 @@ const secondaryAuth = getAuth(secondaryApp);
 
 // ---------- CONFIGURAZIONE SEZIONI ----------
 const SECTIONS = [
-  { id:'amiche', label:'Amiche', emoji:'👭' },
-  { id:'manfre', label:'Manfre', emoji:'👪' },
-  { id:'luna',   label:'Luna',   emoji:'👪' }
+  { id:'amiche', label:'Amiche', emoji:'👭', desc:'Cinema, teatro, uscite con le amiche' },
+  { id:'manfre', label:'Manfre', emoji:'👪', desc:'Spese con la famiglia di Simona' },
+  { id:'luna',   label:'Luna',   emoji:'👪', desc:'Spese con la famiglia di Graziano' }
 ];
 function sectionLabel(id){ const s = SECTIONS.find(x=>x.id===id); return s ? s.label : id; }
 
@@ -402,7 +424,11 @@ onAuthStateChanged(auth, async (u)=>{
   const sez = userDoc.sezioniAbilitate || [];
   const mySections = SECTIONS.filter(s => sez.includes(s.id));
   document.getElementById('sectab-container').innerHTML = mySections.map(s=>
-    `<button class="sectabbtn" id="sec-${s.id}">${s.emoji} ${s.label}</button>`
+    `<button class="sectioncard" id="sec-${s.id}">
+      <div class="sc-icon">${s.emoji}</div>
+      <div class="sc-text"><div class="sc-title">${s.label}</div><div class="sc-sub">${s.desc||''}</div></div>
+      <div class="sc-arrow">›</div>
+    </button>`
   ).join('');
   mySections.forEach(s=>{
     document.getElementById('sec-'+s.id).addEventListener('click', ()=>openSection(s.id));

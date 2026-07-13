@@ -1,217 +1,174 @@
 SPESE TRA AMICHE — BRIEFING TECNICO DI PROGETTO
 ==================================================
-Data briefing: 13 luglio 2026 (aggiornato: app online, 3 sezioni, bugfix)
+Data briefing: 13 luglio 2026 (progetto completo — funzionalità finali,
+GitHub creato)
 
 
 1. PANORAMICA
 --------------------------------------------------
-App per tracciare e pareggiare spese condivise, organizzata in TRE
-SEZIONI SEPARATE E INDIPENDENTI: Amiche, Manfre (parenti di Simona),
-Luna (parenti di Graziano).
+App per tracciare e pareggiare spese condivise, organizzata in sezioni
+separate e indipendenti (attualmente: Amiche, Manfre, Luna).
 
 Nome app: Spese tra amiche
-Colore/stile: verde salvia, con immagine di copertina come sfondo
-sfumato (opacità 55%) su tutte le schermate, confinato alla larghezza
-della colonna app (max 480px), non stirato su tutta la finestra
-desktop
-Repository: GitHub, mieapp/spese-tra-amiche (DA CREARE, vedi punto 12)
+Colore/stile: verde salvia, immagine di copertina come sfondo sfumato
+(opacità 55%) su tutte le schermate, confinato alla colonna app
+(max 480px)
+Repository: https://github.com/mieapp/spese-tra-amiche (pubblico,
+creato e sincronizzato)
 Hosting + backend: Firebase, progetto "spese-tra-amiche"
-STATO: APP ONLINE E FUNZIONANTE a https://spese-tra-amiche.web.app
-Uso principale: smartphone, ottimizzata mobile-first, utilizzabile
-anche da browser desktop
+STATO: PROGETTO COMPLETO E ONLINE a https://spese-tra-amiche.web.app
+Uso principale: smartphone (PWA installabile), utilizzabile anche da
+browser desktop
 
 
-2. STRUTTURA A TRE SEZIONI (aggiornato da 2 a 3)
+2. STRUTTURA A SEZIONI
 --------------------------------------------------
-Inizialmente erano previste due sezioni (Amiche/Parenti), poi la
-sezione "Parenti" è stata scissa in due gruppi realmente separati
-(i parenti di Simona e quelli di Graziano non condividono mai spese
-tra loro, quindi serviva evitare debiti incrociati impropri).
+Le sezioni sono gestite in modo GENERICO nel codice (array SECTIONS),
+non hardcoded: aggiungerne una quarta in futuro richiede solo una riga
+di codice, non una riscrittura.
 
-SEZIONE "AMICHE"
-Persone (7): Simona, Ornella, Paola, Claudia, Silvana, Chiara, Massimo
-Categorie: Cinema, Teatro, Concerti, Musei, Ristoranti, Supermercato,
-Acquisti, Altro
+SEZIONE "AMICHE" — Simona, Ornella, Paola, Claudia, Silvana, Chiara,
+Massimo. Categorie: Cinema, Teatro, Concerti, Musei, Ristoranti,
+Supermercato, Acquisti, Altro
 
-SEZIONE "MANFRE" (parenti di Simona)
-Persone (4): Simona, Alessandro, Betty, Federico
-Categorie: Ristorante, Supermercato, Altro (+ "Regali" da aggiungere
-manualmente da interfaccia quando serve, gestibile in autonomia)
+SEZIONE "MANFRE" (parenti di Simona) — Simona, Alessandro, Betty,
+Federico. Categorie: Ristorante, Supermercato, Regali, Altro
 
-SEZIONE "LUNA" (parenti di Graziano)
-Persone (3): Simona, Cristina, Alfonsa
-Categorie: Ristorante, Supermercato, Altro (+ "Regali" come sopra)
+SEZIONE "LUNA" (parenti di Graziano) — Simona, Cristina, Alfonsa.
+Categorie: Ristorante, Supermercato, Regali, Altro
 
-Nota: Simona è l'unica persona presente in più di una sezione (Amiche
-+ Manfre + Luna), ma questo non crea alcun problema: il motore di
-bilancio calcola i saldi in modo isolato per ciascuna sezione, quindi
-i suoi tre "ruoli" restano completamente separati nei conti.
-
-Le sezioni sono ora gestite in modo GENERICO nel codice (non più
-hardcoded a due valori fissi): aggiungere una quarta sezione in futuro
-richiede solo di aggiungere una riga all'array SECTIONS nel codice,
-non una riscrittura.
+Simona è l'unica persona presente in più sezioni; il motore di bilancio
+calcola i saldi in modo isolato per ciascuna sezione, quindi non c'è
+mai confusione tra i suoi diversi "ruoli".
 
 
 3. PERSONE E ACCESSO
 --------------------------------------------------
-Proprietari/amministratori: Graziano e Simona, entrambi admin, con
-accesso a tutte e tre le sezioni.
+Admin: Graziano e Simona, accesso a tutte e tre le sezioni.
 
-Accesso cloud:
-- Firebase Authentication con Email/Password
-- NESSUNA pagina di registrazione pubblica: solo login. Gli account
-  vengono creati da un admin dalla Console Firebase (Authentication →
-  Users → Aggiungi utente)
-- Dopo il primo accesso, ogni persona può cambiare la propria password
-  (pulsante "Password" in alto nella app) o richiederne il reset via
-  email ("Password dimenticata?" nel login)
-- Ogni email autorizzata è abilitata a una o più sezioni specifiche,
-  gestibile dal pannello Gestione (solo admin): checkbox per ciascuna
-  sezione, spuntabili in combinazione libera
-- Le regole di sicurezza Firestore consentono lettura/scrittura solo
-  alle email autorizzate, e solo per le sezioni a cui sono abilitate
+Le altre persone dei tre gruppi non hanno ancora un proprio account:
+andranno create quando si deciderà di dare loro accesso diretto
+all'app (vedi punto 9 per il flusso, ora semplificato).
 
-STATO ACCOUNT ATTUALI:
-- graziano.lunazzi@gmail.com — admin, amiche+manfre+luna — creato e
-  funzionante
-- simona.manfredini@outlook.it — admin, da verificare che risulti
-  abilitata a tutte e tre le sezioni dopo l'ultimo aggiustamento
-  (controllare su Firestore: role deve essere "admin", sezioniAbilitate
-  deve contenere tutte e tre)
-- Le altre persone (Ornella, Paola, Claudia, Silvana, Chiara, Massimo,
-  Alessandro, Betty, Federico, Cristina, Alfonsa) NON hanno ancora un
-  account: andranno create in Authentication + abilitate da Gestione
-  quando si vorrà dare loro accesso diretto all'app
+Login: solo email/password, nessuna registrazione pubblica. Cambio
+password e reset via email disponibili dall'app.
 
 
-4. CATEGORIE / VOCI DI SPESA RICORRENTI
+4. MOTORE DI BILANCIO — DUE LIVELLI
 --------------------------------------------------
-Gestite da interfaccia (non hardcoded), aggiungibili ed eliminabili in
-qualunque momento dal pannello Gestione di ciascuna sezione. Elenco
-iniziale caricato tramite il pulsante "Carica dati iniziali di questa
-sezione" (idempotente: non duplica se già presenti) — vedi punto 2 per
-gli elenchi per sezione.
+LIVELLO BASE — Debiti diretti a coppie: ogni spesa genera debiti diretti
+tra chi ha pagato e ciascun partecipante. Il bilancio mostra solo
+rapporti tra persone che hanno davvero condiviso una spesa, mai un
+salto creato per ottimizzare i conti tra chi non ha mai speso insieme.
+Saldo di coppia: operazione unica che consolida tutte le spese in
+sospeso tra due persone, con storico dettagliato.
+
+LIVELLO AVANZATO — Gruppi di compensazione (nuova funzionalità):
+per un sottoinsieme di persone e spese scelte esplicitamente, si può
+creare un "gruppo di compensazione" che applica invece l'ottimizzazione
+a catena (es. Anna deve a Bea, Bea deve a Carla → risulta solo Anna
+deve a Carla). Il gruppo:
+- si crea selezionando alcune spese dalla lista ("Seleziona spese da
+  compensare" → "Crea nuovo gruppo di compensazione")
+- resta aperto e può ricevere altre spese nel tempo
+- appare come card separata nel Bilancio, con transazioni ottimizzate
+- si chiude con "Salda gruppo" (operazione unica, registra le
+  transazioni nello storico)
+- le spese di un gruppo aperto sono evidenziate in lista (sfondo verde
+  tenue + etichetta 🔗) ed escluse dal bilancio a coppie normale
+
+ANNULLAMENTO SALDI: ogni saldo nello Storico (sia di coppia che di
+gruppo) ha una "×" per annullarlo — ripristina il debito (rimuovendo
+la coppia da settledPairs) o riapre il gruppo di compensazione,
+eliminando il record di saldo.
 
 
-5. MOTORE DI BILANCIO — LOGICA A COPPIE
+5. GESTIONE UTENTI DA APP (nuova funzionalità)
 --------------------------------------------------
-Invariato rispetto al progetto originale: libro mastro a coppie
-(pairwise ledger), applicato indipendentemente in ciascuna delle tre
-sezioni. Ogni spesa registra debiti diretti tra chi ha pagato e
-ciascun partecipante; il saldo "chi deve pagare chi" si costruisce
-solo da questi debiti diretti, mai da netting globale tra persone che
-non hanno mai condiviso una spesa. Verificato e funzionante in test.
+Da Gestione → "Crea nuovo utente": crea l'account di autenticazione
+(email+password) E lo abilita alle sezioni scelte, in un unico
+passaggio, senza serve alla Console Firebase. Checkbox "Rendi
+amministratore" per creare direttamente un account admin (default:
+utente normale).
+
+Dettaglio tecnico: la creazione avviene tramite una seconda istanza
+Firebase isolata (app secondaria), per non disconnettere l'admin che
+sta creando il nuovo account.
+
+Il riquadro "Persone autorizzate" resta per modificare le sezioni
+abilitate di un account già esistente (non ne cambia il ruolo).
 
 
-6. SALDO/PAREGGIO TRA DUE PERSONE
+6. SCHERMATA AIUTO (nuova funzionalità)
 --------------------------------------------------
-Invariato: operazione unica e consolidata per coppia, dentro la stessa
-sezione, con storico dettagliato delle spese coperte da ogni saldo.
-Funzionante e testato.
+Quarto pulsante nella barra di navigazione in basso, visibile a tutti
+gli utenti: spiega sezioni, come aggiungere una spesa, bilancio, saldo
+di coppia, gruppi di compensazione, storico, gestione (per admin) ed
+export. Testo in linguaggio semplice, pensato per chi non ha seguito
+lo sviluppo tecnico.
 
 
-7. BUG RISOLTI DURANTE LO SVILUPPO (per riferimento futuro)
+7. STRUTTURA DATI FIRESTORE
 --------------------------------------------------
-- Collection "authorizedEmails" inizialmente creata con uno spazio
-  finale invisibile nel nome (diventava "authorizedEmails "),
-  causando fallimento silenzioso del login. Risolto ricreando la
-  collection con il nome esatto.
-- Bug nel pulsante "Abilita accesso": sovrascriveva sempre il campo
-  "role" a "member", anche per account già admin, retrocedendo
-  accidentalmente gli admin a membri normali quando si aggiungevano
-  nuove sezioni al loro accesso. CORRETTO: ora il campo role non viene
-  più toccato in questa operazione (va cambiato solo manualmente da
-  Firestore se serve promuovere/retrocedere un account).
-- Bug CSS: lo stile generico degli <input> si applicava anche alle
-  checkbox, rendendole enormi blocchi a piena larghezza invece delle
-  classiche caselline piccole, rendendo impossibile selezionarne più
-  di una alla volta in modo affidabile. CORRETTO con una regola CSS
-  dedicata a input[type="checkbox"].
-- Sfondo immagine inizialmente applicato al <body>, quindi stirato su
-  tutta la larghezza della finestra desktop invece che sulla sola
-  colonna dell'app (max 480px). CORRETTO spostando lo sfondo sul
-  contenitore .app.
-- Aperto file:// invece di servire l'app da un vero server: causava
-  blocchi CORS su manifest.json e mancato caricamento di alcune
-  risorse. Risolto installando Firebase CLI (aggiornata da v13.0.0 a
-  v15.23.0) e usando "firebase serve" / poi il deploy vero.
-
-
-8. STRUTTURA DATI FIRESTORE
---------------------------------------------------
-Invariata nella forma (vedi collections sotto), ma il campo "sezione"
-ora assume tre valori possibili: 'amiche' | 'manfre' | 'luna' (invece
-di due), gestiti in modo generico dal codice (array SECTIONS).
-
 Collections: friends, categories, expenses, settlements,
-authorizedEmails — schema identico alla versione precedente del
-briefing, con "sezione" come campo libero (stringa), non vincolato nel
-codice a un set fisso di due valori.
+authorizedEmails, compensationGroups (nuova).
 
-Regole di sicurezza Firestore: invariate nella logica (hasAccess,
-isAdmin), già generiche e compatibili con qualunque numero di sezioni
-senza bisogno di modifiche.
+expenses ha ora anche il campo opzionale compGroupId (riferimento al
+gruppo di compensazione, se assegnata).
+
+settlements ha ora anche i campi type ('pair'|'group') e pairKey/
+groupId, usati per poter annullare correttamente un saldo.
+
+Regole di sicurezza Firestore aggiornate per includere
+compensationGroups e per permettere l'eliminazione dei settlements
+(necessaria per l'annullamento saldi).
 
 
-9. FUNZIONALITÀ AGGIUNTE OLTRE AL PROGETTO ORIGINALE
+8. BUG RISOLTI DURANTE LO SVILUPPO (per riferimento futuro)
 --------------------------------------------------
-- Pulsante "Carica dati iniziali di questa sezione" in Gestione: carica
-  in un click le persone/categorie di base di quella sezione, senza
-  duplicare quelle già presenti
-- Eliminazione di persone, categorie e accessi autorizzati (icona "×"),
-  con conferma
-- Cambio password dall'interno dell'app (pulsante "Password" in alto)
-- Placeholder "Seleziona chi ha pagato" nel campo Pagato da (non
-  seleziona più il primo nome automaticamente)
-- Campo "Divide tra" ora parte senza nessuno selezionato per una spesa
-  nuova (invece di tutti selezionati di default)
-- Freccina visibile su tutti i menu a tendina, per distinguerli
-  chiaramente dai campi di testo libero
-- Immagine di copertina come sfondo sfumato in tutte le schermate
+- Collection "authorizedEmails" creata con uno spazio finale invisibile
+  nel nome, causava fallimento silenzioso del login. Risolto.
+- Bug: il pulsante di abilitazione accessi sovrascriveva sempre il
+  ruolo a "member", retrocedendo admin esistenti. Corretto.
+- Bug CSS: le checkbox ereditavano lo stile degli input di testo
+  (larghezza piena), rendendo impossibile selezionarne più di una.
+  Corretto con regola dedicata a input[type="checkbox"].
+- Sfondo immagine inizialmente sul <body>, stirato su tutta la finestra
+  desktop invece che sulla colonna app. Corretto spostandolo su .app.
+- file:// causava blocchi CORS su manifest e risorse: risolto servendo
+  l'app con Firebase CLI/Hosting invece di aprire il file localmente.
 
 
-10. STATO DEL DEPLOY
+9. STATO DEL DEPLOY E DEL REPOSITORY
 --------------------------------------------------
-- Firebase CLI installata e aggiornata (v15.23.0) sul PC di Graziano,
-  in C:\nvm4w\nodejs (nota: due installazioni residue sul PC, quella
-  in AppData\Roaming\npm è vecchia/inutilizzata e andrebbe ripulita
-  in futuro, non urgente)
-- Ogni volta che si riapre un nuovo terminale per lavorare su questo
-  progetto, va rieseguito: set PATH=C:\nvm4w\nodejs;%PATH%
-- Comando di pubblicazione: firebase deploy --only hosting (dalla
-  cartella "PWA Spese tra amiche" su OneDrive)
-- App raggiungibile pubblicamente a: https://spese-tra-amiche.web.app
-- Test locale alternativo (se serve): firebase serve --only hosting,
-  poi aprire http://localhost:5000 — MAI aprire index.html con doppio
-  click (causa errori CORS su manifest e risorse locali)
+- App online: https://spese-tra-amiche.web.app
+- Repository GitHub: https://github.com/mieapp/spese-tra-amiche
+  (pubblico, creato il 13 luglio 2026)
+- Comando deploy: firebase deploy --only hosting (dalla cartella
+  "PWA Spese tra amiche" su OneDrive)
+- Comandi GitHub dopo ogni modifica al codice:
+  git add .
+  git commit -m "descrizione modifica"
+  git push
+- Firebase CLI aggiornata (v15.23.0) in C:\nvm4w\nodejs; ogni nuovo
+  terminale richiede: set PATH=C:\nvm4w\nodejs;%PATH%
+- Test locale alternativo: firebase serve --only hosting, poi
+  http://localhost:5000 (mai aprire index.html con doppio click)
 
 
-11. PIANO DI LAVORO — STATO AGGIORNATO
+10. STATO FINALE — COSA RESTA (facoltativo, non bloccante)
 --------------------------------------------------
-Fase 1 — Setup infrastruttura: COMPLETATA
-Fase 2 — UI base mobile-first: COMPLETATA
-Fase 3 — Motore di bilancio: COMPLETATA E TESTATA
-Fase 4 — Storico saldi: COMPLETATA
-Fase 5 — Export (WhatsApp/CSV/PDF): COMPLETATA (adattata alle 3 sezioni)
-Fase 6 — Rifinitura grafica: COMPLETATA (icona, sfondo sfumato)
-Fase 7 — Deploy: COMPLETATA (online su Firebase Hosting)
+- Verifica installazione PWA su iPhone reale (Safari → Aggiungi a
+  Home), da fare quando Simona è disponibile
+- Creazione account per le altre persone dei tre gruppi (Ornella,
+  Paola, Claudia, Silvana, Chiara, Massimo, Alessandro, Betty,
+  Federico, Cristina, Alfonsa), quando si deciderà di dare loro
+  accesso diretto — ora fattibile in un click da Gestione → Crea
+  nuovo utente
+- Pulizia della vecchia installazione residua di firebase-tools in
+  C:\Users\grazi\AppData\Roaming\npm (innocua, non urgente)
+- Nessun service worker implementato: non necessario per l'uso
+  attuale (installazione PWA e login funzionano comunque), utile solo
+  se in futuro servisse funzionamento offline
 
-NUOVA Fase 8 — Da fare nella prossima sessione:
-- Controllo più approfondito di tutte le funzionalità (test end-to-end)
-- Verifica finale permessi di Simona (role admin + tutte e 3 le sezioni)
-- Creazione repository GitHub mieapp/spese-tra-amiche (codice non
-  ancora versionato, solo su OneDrive + Firebase Hosting)
-- Eventuale creazione account per le altre persone dei tre gruppi,
-  quando si deciderà di dare loro accesso diretto
-- Verifica installazione PWA su smartphone reale (Aggiungi a
-  schermata Home)
-- Ripulire l'installazione residua vecchia di firebase-tools in
-  AppData\Roaming\npm (facoltativo, non urgente)
-
-
-12. ELEMENTI ANCORA DA FARE
---------------------------------------------------
-- Repository GitHub (non ancora creato)
-- Test approfondito di tutte le funzionalità
-- Eventuali account aggiuntivi per le persone dei tre gruppi
+IL PROGETTO, PER COME CONCEPITO INIZIALMENTE, È COMPLETO.
