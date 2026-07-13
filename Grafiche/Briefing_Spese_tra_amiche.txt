@@ -156,7 +156,24 @@ compensationGroups e per permettere l'eliminazione dei settlements
   http://localhost:5000 (mai aprire index.html con doppio click)
 
 
-10. STATO FINALE — COSA RESTA (facoltativo, non bloccante)
+10. RIFINITURE GRAFICHE SUCCESSIVE (13 luglio 2026, sera)
+--------------------------------------------------
+- Schermata di login: aggiunto banner con l'immagine di copertina e
+  titolo "Spese tra amiche" sovrapposto (stile poster, sfumatura scura
+  in basso per leggibilità), sottotitolo "Dividete, segnate, saldate —
+  senza pensieri", card di login con angoli più morbidi
+- Schermata di selezione sezione (per chi ha accesso a più di una):
+  da piccoli pulsanti in fila a card grandi verticali, ciascuna con
+  icona in cerchio colorato, nome sezione, breve descrizione (es.
+  "Spese con la famiglia di Simona" per Manfre) e freccina; intestazione
+  "Ciao! 👋 In quale spazio vuoi entrare?"
+- Schermata Home (Spese): aggiunta icona circolare accanto al nome
+  della sezione nella barra in alto, per dare coerenza visiva anche a
+  chi ha una sola sezione e salta direttamente lì senza passare dalla
+  schermata di selezione
+
+
+11. STATO FINALE — COSA RESTA (facoltativo, non bloccante)
 --------------------------------------------------
 - Verifica installazione PWA su iPhone reale (Safari → Aggiungi a
   Home), da fare quando Simona è disponibile
