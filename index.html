@@ -614,7 +614,7 @@ function renderExps(){
       <div style="min-width:0;flex:1;display:flex;align-items:flex-start;gap:8px;">
         ${canSelect?`<input type="checkbox" class="sel-exp" data-id="${e.id}" ${checked} style="margin-top:3px;">`:''}
         <div><span class="catbadge">${c.label}</span>${e.desc?`<span style="font-size:15px;font-weight:500;">${e.desc}</span>`:''}
-        ${grp?`<div style="font-size:11px;color:var(--g600);margin-top:2px;">🔗 ${grp.label}</div>`:''}</div>
+        ${grp?`<div style="font-size:11px;color:var(--g600);margin-top:2px;">🔗 ${grp.label} <span class="rm-from-group" data-id="${e.id}" style="cursor:pointer;color:#E74C3C;text-decoration:underline;margin-left:6px;">togli dal gruppo</span></div>`:''}</div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;margin-left:8px;">
         <div style="font-size:15px;font-weight:600;color:var(--g600);">€${(e.amount||0).toFixed(2)}</div>
@@ -626,12 +626,28 @@ function renderExps(){
   }).join('');
   document.querySelectorAll('.del-exp').forEach(b=>b.addEventListener('click', ()=>delExp(b.dataset.id)));
   document.querySelectorAll('.edit-exp').forEach(b=>b.addEventListener('click', ()=>editExp(b.dataset.id)));
+  document.querySelectorAll('.rm-from-group').forEach(b=>b.addEventListener('click', ()=>removeFromGroup(b.dataset.id)));
   document.querySelectorAll('.sel-exp').forEach(b=>b.addEventListener('change', ()=>{
     if(b.checked) selectedExpIds.add(b.dataset.id); else selectedExpIds.delete(b.dataset.id);
     renderSelectionBar();
   }));
   renderSelectionBar();
 }
+async function removeFromGroup(expenseId){
+  const grp = openGroupOf(expenseId);
+  if(!grp) return;
+  if(!confirm('Togliere questa spesa dal gruppo di compensazione? Tornerà nel bilancio normale.')) return;
+  try{
+    await updateDoc(doc(db,'expenses', expenseId), { compGroupId: null });
+    const remaining = (grp.expenseIds||[]).filter(id=>id!==expenseId);
+    if(remaining.length===0){
+      await deleteDoc(doc(db,'compensationGroups', grp.id));
+    } else {
+      await updateDoc(doc(db,'compensationGroups', grp.id), { expenseIds: remaining });
+    }
+  }catch(e){ alert('Errore nella rimozione dal gruppo: '+e.message); }
+}
+
 async function delExp(id){
   if(!confirm('Eliminare questa spesa?')) return;
   await deleteDoc(doc(db,'expenses',id));

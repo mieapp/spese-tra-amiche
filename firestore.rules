@@ -53,7 +53,7 @@ service cloud.firestore {
       allow read: if hasAccess(resource.data.sezione);
       allow create: if hasAccess(request.resource.data.sezione);
       allow update: if hasAccess(resource.data.sezione);
-      allow delete: if false;
+      allow delete: if hasAccess(resource.data.sezione);
     }
   }
 }
