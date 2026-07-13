@@ -142,7 +142,10 @@ label{font-size:13px;color:var(--g600);font-weight:500;display:block;margin-bott
 <!-- HOME / SPESE -->
 <div id="s-home" class="screen">
   <div class="topbar">
-    <h1 id="home-title">Amiche</h1>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div id="home-icon" style="width:38px;height:38px;border-radius:50%;background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;">👭</div>
+      <h1 id="home-title">Amiche</h1>
+    </div>
     <div>
       <span class="link" id="btn-switch-sec" style="display:none;margin:0 10px 0 0;">Cambia sezione</span>
       <span class="link" id="btn-change-pass" style="margin:0 10px 0 0;">Password</span>
@@ -455,6 +458,7 @@ function openSection(sec){
   curSec = sec;
   selectionMode = false; selectedExpIds = new Set();
   document.getElementById('home-title').textContent = sectionLabel(sec);
+  document.getElementById('home-icon').textContent = (SECTIONS.find(s=>s.id===sec)||{}).emoji || '📋';
   document.getElementById('btn-switch-sec').style.display = (userDoc.sezioniAbilitate||[]).length>1 ? 'inline' : 'none';
   document.getElementById('tabbar').style.display='flex';
   const isAdmin = userDoc.role==='admin';
