@@ -99,6 +99,8 @@ label{font-size:13px;color:var(--g600);font-weight:500;display:block;margin-bott
 .covimg{width:100%;border-radius:var(--rlg);margin-bottom:16px;}
 .link{color:var(--g600);font-size:14px;text-align:center;display:block;cursor:pointer;margin-top:6px;}
 .settlecard{background:var(--g50);border-radius:var(--rmd);padding:8px 10px;margin-top:6px;font-size:12px;color:#555;}
+.gbox{border:1.5px solid var(--g100);border-radius:var(--rmd);padding:10px 14px;margin-bottom:10px;background:var(--g50);}
+.gboxh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
 .loginbanner{position:relative;border-radius:var(--rlg);overflow:hidden;margin:20px 0 22px;box-shadow:0 8px 24px rgba(63,86,54,0.18);}
 .loginbanner img{width:100%;display:block;aspect-ratio:4/3;object-fit:cover;}
 .loginbanner .overlay{position:absolute;inset:0;background:linear-gradient(to bottom, rgba(63,86,54,0.05) 40%, rgba(40,56,34,0.75) 100%);}
@@ -218,6 +220,17 @@ label{font-size:13px;color:var(--g600);font-weight:500;display:block;margin-bott
     <div class="row" style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="new-friend" placeholder="Nome nuova persona" style="flex:1;margin-bottom:0;"><button class="btns btnp" id="btn-add-friend" style="flex-shrink:0;">Aggiungi</button></div>
   </div>
   <div class="card">
+    <div class="st">Gruppi <span style="font-weight:400;text-transform:none;font-size:12px;color:#999;">(es. coppie che pagano sempre insieme)</span></div>
+    <p style="font-size:12px;color:#999;margin-bottom:8px;">I componenti di un gruppo vengono aggregati insieme nel Bilancio (es. "Ceci deve 20€ a Simona" invece di due righe separate) e diventano selezionabili come scorciatoia in "Divide tra".</p>
+    <div id="admin-groups"></div>
+    <div class="row" style="margin-bottom:10px;margin-top:10px;"><input type="text" id="new-pgroup-name" placeholder="Nome gruppo (es. Ceci)" style="flex:1;margin-bottom:0;"><button class="btns" id="btn-start-pgroup" style="flex-shrink:0;">Crea</button></div>
+    <div id="pgroup-build" style="display:none;margin-bottom:10px;">
+      <div style="font-size:14px;color:#666;margin-bottom:8px;">Tocca le persone da aggiungere:</div>
+      <div id="pgroup-csel"></div>
+      <div style="margin-top:10px;display:flex;gap:8px;"><button class="btns btnp" id="btn-save-pgroup">Salva gruppo</button><button class="btns btng" id="btn-cancel-pgroup">Annulla</button></div>
+    </div>
+  </div>
+  <div class="card">
     <div class="st">Categorie</div>
     <div id="admin-cats"></div>
     <div class="row" style="display:flex;gap:8px;margin-top:10px;"><input type="text" id="new-cat" placeholder="Nome nuova categoria" style="flex:1;margin-bottom:0;"><button class="btns btnp" id="btn-add-cat" style="flex-shrink:0;">Aggiungi</button></div>
@@ -273,11 +286,11 @@ label{font-size:13px;color:var(--g600);font-weight:500;display:block;margin-bott
   </div>
   <div class="card">
     <div class="st">Aggiungere una spesa</div>
-    <p style="font-size:14px;line-height:1.5;margin-bottom:10px;">Tocca "Aggiungi spesa", scegli la categoria, l'importo, chi ha pagato e con chi va divisa (tocca i nomi in "Divide tra": puoi selezionare solo alcune persone, non serve che siano tutte). L'app calcola automaticamente quanto deve ciascuno.</p>
+    <p style="font-size:14px;line-height:1.5;margin-bottom:10px;">Tocca "Aggiungi spesa", scegli la categoria, l'importo, chi ha pagato e con chi va divisa (tocca i nomi in "Divide tra": puoi selezionare solo alcune persone, non serve che siano tutte). L'app calcola automaticamente quanto deve ciascuno. Se esiste un gruppo (es. una coppia), puoi toccare la sua etichetta 👥 per selezionare tutti i suoi componenti insieme, invece di uno per uno.</p>
   </div>
   <div class="card">
     <div class="st">Il bilancio</div>
-    <p style="font-size:14px;line-height:1.5;margin-bottom:10px;">Nella tab "Bilancio" vedi chi deve pagare chi. I saldi sono calcolati solo tra le persone che hanno davvero condiviso una spesa insieme: se Anna e Bea vanno al cinema e Carla non c'entra, il saldo tra Anna e Bea resta separato da qualunque altro conto di Carla. <b>Privacy:</b> se il tuo account non è amministratore, vedi solo le spese e i saldi che ti riguardano direttamente, mai quelli delle altre persone tra loro. La casella "Il mio saldo" nella schermata Spese mostra il tuo saldo netto: positivo (verde) se ti devono, negativo (rosso) se devi tu.</p>
+    <p style="font-size:14px;line-height:1.5;margin-bottom:10px;">Nella tab "Bilancio" vedi chi deve pagare chi. I saldi sono calcolati solo tra le persone che hanno davvero condiviso una spesa insieme: se Anna e Bea vanno al cinema e Carla non c'entra, il saldo tra Anna e Bea resta separato da qualunque altro conto di Carla. Se due o più persone fanno parte di un gruppo (es. una coppia), i loro debiti verso la stessa persona esterna vengono mostrati come un'unica riga con il nome del gruppo, e si saldano insieme con un solo tocco. <b>Privacy:</b> se il tuo account non è amministratore, vedi solo le spese e i saldi che ti riguardano direttamente, mai quelli delle altre persone tra loro. La casella "Il mio saldo" nella schermata Spese mostra il tuo saldo netto personale: positivo (verde) se ti devono, negativo (rosso) se devi tu.</p>
   </div>
   <div class="card">
     <div class="st">Saldare una coppia</div>
@@ -352,6 +365,7 @@ let editIdx = null;      // id spesa in modifica
 let curPM = 'cash';
 let curCat = null;
 let compGroups = [];     // gruppi di compensazione della sezione attiva
+let personGroups = [];   // gruppi di persone (es. coppie), per aggregazione nel bilancio
 let selectionMode = false;
 let selectedExpIds = new Set();
 let iAmAdmin = false;
@@ -367,7 +381,8 @@ function visibleExpenses(){
 function visibleSettlements(){
   if(iAmAdmin) return settlements;
   if(!myName) return [];
-  return settlements.filter(s => s.personA===myName || s.personB===myName);
+  const myId = displayIdentity(myName);
+  return settlements.filter(s => s.personA===myName || s.personB===myName || s.personA===myId || s.personB===myId);
 }
 function visibleCompGroups(){
   if(iAmAdmin) return compGroups;
@@ -513,6 +528,11 @@ function openSection(sec){
   unsubs.push(onSnapshot(qG, snap=>{
     compGroups = snap.docs.map(d=>({id:d.id,...d.data()}));
     renderExps(); renderBal();
+  }));
+  const qPG = query(collection(db,'personGroups'), where('sezione','==',sec));
+  unsubs.push(onSnapshot(qPG, snap=>{
+    personGroups = snap.docs.map(d=>({id:d.id,...d.data()}));
+    renderAdminGroups(); renderExpFormOptions(); renderBal();
   }));
   if(iAmAdmin){
     const qA = query(collection(db,'authorizedEmails'));
@@ -716,9 +736,21 @@ function renderExpFormOptions(){
   });
   document.getElementById('epay').innerHTML = '<option value="" disabled selected>Seleziona chi ha pagato</option>' +
     friends.map(f=>`<option value="${f.name}">${f.name}</option>`).join('');
-  document.getElementById('eparts').innerHTML = friends.map(f=>
+  const groupChips = personGroups.length ? `<div style="margin-bottom:8px;">${personGroups.map(g=>
+    `<span class="chip" data-groupsel="${g.id}" style="cursor:pointer;background:var(--g400);color:#fff;border-color:var(--g400);">👥 ${g.name}</span>`
+  ).join('')}</div>` : '';
+  document.getElementById('eparts').innerHTML = groupChips + friends.map(f=>
     `<div class="partchip" data-name="${f.name}" onclick="this.classList.toggle('on')">${f.name}</div>`
   ).join('');
+  document.querySelectorAll('#eparts [data-groupsel]').forEach(chip=>{
+    chip.addEventListener('click', function(){
+      const g = personGroups.find(x=>x.id===this.dataset.groupsel);
+      if(!g) return;
+      const memberChips = Array.from(document.querySelectorAll('#eparts .partchip')).filter(c=>(g.members||[]).includes(c.dataset.name));
+      const allOn = memberChips.length>0 && memberChips.every(c=>c.classList.contains('on'));
+      memberChips.forEach(c=>{ if(allOn) c.classList.remove('on'); else c.classList.add('on'); });
+    });
+  });
 }
 document.getElementById('btn-all').addEventListener('click', ()=>document.querySelectorAll('.partchip').forEach(c=>c.classList.add('on')));
 document.getElementById('btn-none').addEventListener('click', ()=>document.querySelectorAll('.partchip').forEach(c=>c.classList.remove('on')));
@@ -869,9 +901,27 @@ async function closeCompGroup(groupId){
   }catch(e){ alert('Errore nel saldo del gruppo: '+e.message); }
 }
 
+// Calcola i saldi tra "identità" (persona singola o gruppo), aggregando i debiti diretti
+// di più persone dello stesso gruppo verso la stessa controparte esterna
+function computeAggregatedBalances(){
+  const raw = computePairBalances();
+  const agg = {};
+  Object.values(raw).forEach(p=>{
+    if(Math.abs(p.net) < 0.01) return;
+    const idA = displayIdentity(p.a), idB = displayIdentity(p.b);
+    if(idA === idB) return; // stessa persona/gruppo, es. debito interno alla coppia: non mostrato
+    const key = pairKey(idA, idB);
+    const [ka, kb] = key.split('_');
+    if(!agg[key]) agg[key] = { a:ka, b:kb, net:0 };
+    const debtorId = p.net>=0 ? idB : idA;
+    const amt = Math.abs(p.net);
+    if(debtorId === kb) agg[key].net += amt; else agg[key].net -= amt;
+  });
+  return agg;
+}
+
 function renderBal(){
-  const pairs = computePairBalances();
-  const rows = Object.values(pairs).filter(p=>Math.abs(p.net) > 0.01);
+  const rows = Object.values(computeAggregatedBalances());
   const el = document.getElementById('balcont');
   const groupsHtml = renderCompGroups();
   const rowsHtml = rows.length ? rows.map(p=>{
@@ -890,29 +940,48 @@ function renderBal(){
   });
 }
 
-async function settlePair(a,b,amt){
-  if(!confirm(`Confermi il saldo di €${amt.toFixed(2)} tra ${a} e ${b}? Tutte le spese in sospeso tra loro verranno consolidate in un'unica operazione.`)) return;
+// Calcola, senza scrivere nulla, quali spese coprono il debito diretto reale tra due persone (a,b)
+function gatherCoverage(a,b){
   const key = pairKey(a,b);
-  const covered = [];
-  const batchUpdates = [];
+  const covered = []; const updates = [];
   expenses.forEach(e=>{
-    if(e.compGroupId) return; // gestita dal suo gruppo di compensazione
+    if(e.compGroupId) return;
     const parts = e.participants||[];
     const already = e.settledPairs||[];
     if(already.includes(key)) return;
     const involvesPair = (parts.includes(a) && e.payer===b) || (parts.includes(b) && e.payer===a);
     if(!involvesPair) return;
     const share = (e.amount||0)/parts.length;
-    covered.push({ expenseId:e.id, desc:e.desc||catBy(e.cat).label, date:e.date, amountForPair: share });
-    batchUpdates.push({ id:e.id, newSettled:[...already, key] });
+    covered.push({ expenseId:e.id, desc:e.desc||catBy(e.cat).label, date:e.date, amountForPair: share, pairKey:key });
+    updates.push({ id:e.id, newSettled:[...already, key] });
+  });
+  return { covered, updates };
+}
+
+// Salda un'identità (persona singola o gruppo) contro un'altra: se una o entrambe sono gruppi,
+// consolida in un'unica operazione tutti i debiti diretti reali sottostanti tra i rispettivi membri
+async function settlePair(idA, idB, amt){
+  if(!confirm(`Confermi il saldo di €${amt.toFixed(2)} tra ${idA} e ${idB}? Tutte le spese in sospeso verranno consolidate in un'unica operazione.`)) return;
+  const raw = computePairBalances();
+  const relevant = Object.values(raw).filter(p=>{
+    const da = displayIdentity(p.a), db = displayIdentity(p.b);
+    return (da===idA && db===idB) || (da===idB && db===idA);
+  });
+  let allCovered = []; let allUpdates = [];
+  relevant.forEach(p=>{
+    if(Math.abs(p.net) < 0.01) return;
+    const { covered, updates } = gatherCoverage(p.a, p.b);
+    allCovered = allCovered.concat(covered);
+    allUpdates = allUpdates.concat(updates);
   });
   try{
-    for(const u of batchUpdates){
+    for(const u of allUpdates){
       await updateDoc(doc(db,'expenses',u.id), { settledPairs:u.newSettled });
     }
     await addDoc(collection(db,'settlements'), {
-      sezione:curSec, personA:a, personB:b, amount:amt, date:new Date().toISOString().split('T')[0],
-      coveredExpenses:covered, createdAt:serverTimestamp(), type:'pair', pairKey:key
+      sezione:curSec, personA:idA, personB:idB, amount:amt, date:new Date().toISOString().split('T')[0],
+      coveredExpenses:allCovered, createdAt:serverTimestamp(), type: relevant.length>1 ? 'persongroup' : 'pair',
+      pairKey: relevant.length===1 ? pairKey(relevant[0].a, relevant[0].b) : null
     });
   }catch(e){ alert('Errore nel salvataggio del saldo. Riprova.'); }
 }
@@ -930,7 +999,7 @@ function renderHist(){
           <span class="del-settle" data-id="${s.id}" style="cursor:pointer;color:#E74C3C;font-size:18px;">&times;</span>
         </div>
       </div>
-      <div class="expmeta">${fmtDate(s.date)}${s.type==='group'?' · saldo di gruppo':''}</div>
+      <div class="expmeta">${fmtDate(s.date)}${s.type==='group'?' · saldo di gruppo di compensazione':''}${s.type==='persongroup'?' · saldo aggregato di gruppo':''}</div>
       <div class="settlecard">${(s.coveredExpenses||[]).map(c=>`${fmtDate(c.date)} — ${c.desc}: €${(c.amountForPair||0).toFixed(2)}`).join('<br>')}</div>
     </div>`).join('');
   document.querySelectorAll('.del-settle').forEach(b=>b.addEventListener('click', ()=>undoSettlement(b.dataset.id)));
@@ -944,8 +1013,8 @@ async function undoSettlement(settlementId){
     if(s.type==='group' && s.groupId){
       await updateDoc(doc(db,'compensationGroups', s.groupId), { status:'open' });
     } else {
-      const key = s.pairKey || pairKey(s.personA, s.personB);
       for(const c of (s.coveredExpenses||[])){
+        const key = c.pairKey || s.pairKey || pairKey(s.personA, s.personB);
         await updateDoc(doc(db,'expenses', c.expenseId), { settledPairs: arrayRemove(key) });
       }
     }
@@ -966,6 +1035,55 @@ async function removeFriend(id){
   if(!confirm(`Rimuovere "${f.name}" dal gruppo? Le spese passate che la coinvolgono restano nello storico.`)) return;
   await deleteDoc(doc(db,'friends',id));
 }
+
+// ---------- ADMIN: gruppi di persone (es. coppie) ----------
+let pgName = ''; let pgMembers = [];
+function displayIdentity(name){
+  const g = personGroups.find(x=>(x.members||[]).includes(name));
+  return g ? g.name : name;
+}
+function renderAdminGroups(){
+  const el = document.getElementById('admin-groups');
+  if(!el) return;
+  el.innerHTML = personGroups.map(g=>`<div class="gbox"><div class="gboxh"><div style="font-size:14px;font-weight:500;">${g.name}</div><span class="rm-pgroup" data-id="${g.id}" style="cursor:pointer;color:#E74C3C;font-size:20px;">&times;</span></div><div>${(g.members||[]).map(m=>`<span class="chip" style="margin:2px;">${m}</span>`).join('')}</div></div>`).join('') || '<div style="font-size:13px;color:#999;">Nessun gruppo ancora</div>';
+  el.querySelectorAll('.rm-pgroup').forEach(b=>b.addEventListener('click', async ()=>{
+    if(!confirm('Eliminare questo gruppo? Le persone restano, si scioglie solo il collegamento.')) return;
+    await deleteDoc(doc(db,'personGroups', b.dataset.id));
+  }));
+}
+document.getElementById('btn-start-pgroup').addEventListener('click', ()=>{
+  const n = document.getElementById('new-pgroup-name').value.trim();
+  if(!n){ alert('Inserisci un nome per il gruppo'); return; }
+  pgName = n; pgMembers = [];
+  document.getElementById('pgroup-build').style.display='block';
+  document.getElementById('new-pgroup-name').value='';
+  renderPgroupCsel();
+});
+function renderPgroupCsel(){
+  const already = personGroups.flatMap(g=>g.members||[]);
+  const avail = friends.filter(f=>!already.includes(f.name));
+  const el = document.getElementById('pgroup-csel');
+  if(!avail.length){ el.innerHTML='<div style="font-size:13px;color:#666;">Tutte le persone sono già in un gruppo.</div>'; return; }
+  el.innerHTML = avail.map(f=>`<span class="chip selc${pgMembers.includes(f.name)?' on':''}" data-p="${f.name}" style="cursor:pointer;">${f.name}</span>`).join('');
+  el.querySelectorAll('.chip.selc').forEach(c=>c.addEventListener('click', function(){
+    const p = this.dataset.p;
+    if(pgMembers.includes(p)) pgMembers = pgMembers.filter(x=>x!==p); else pgMembers.push(p);
+    renderPgroupCsel();
+  }));
+}
+document.getElementById('btn-save-pgroup').addEventListener('click', async ()=>{
+  if(pgMembers.length<2){ alert('Seleziona almeno due persone per il gruppo.'); return; }
+  try{
+    await addDoc(collection(db,'personGroups'), { sezione:curSec, name:pgName, members:[...pgMembers], createdAt:serverTimestamp() });
+    document.getElementById('pgroup-build').style.display='none';
+    pgName=''; pgMembers=[];
+  }catch(e){ alert('Errore: '+e.message); }
+});
+document.getElementById('btn-cancel-pgroup').addEventListener('click', ()=>{
+  document.getElementById('pgroup-build').style.display='none';
+  pgName=''; pgMembers=[];
+});
+
 document.getElementById('btn-add-friend').addEventListener('click', async ()=>{
   const inp = document.getElementById('new-friend');
   const name = inp.value.trim();
@@ -1105,8 +1223,7 @@ document.getElementById('btn-add-auth').addEventListener('click', async ()=>{
 
 // ---------- EXPORT ----------
 document.getElementById('btn-wa').addEventListener('click', ()=>{
-  const pairs = computePairBalances();
-  const rows = Object.values(pairs).filter(p=>Math.abs(p.net)>0.01);
+  const rows = Object.values(computeAggregatedBalances());
   let txt = `*Spese tra amiche — ${sectionLabel(curSec)}*\n\n*Chi deve pagare chi:*\n`;
   if(!rows.length) txt += 'Tutti in pari!\n';
   rows.forEach(p=>{

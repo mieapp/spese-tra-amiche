@@ -55,5 +55,12 @@ service cloud.firestore {
       allow update: if hasAccess(resource.data.sezione);
       allow delete: if hasAccess(resource.data.sezione);
     }
+
+    match /personGroups/{id} {
+      allow read: if hasAccess(resource.data.sezione);
+      allow create: if hasAccess(request.resource.data.sezione);
+      allow update: if hasAccess(resource.data.sezione);
+      allow delete: if hasAccess(resource.data.sezione);
+    }
   }
 }
