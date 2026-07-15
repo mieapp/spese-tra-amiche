@@ -160,9 +160,9 @@ label{font-size:13px;color:var(--g600);font-weight:500;display:block;margin-bott
 
   <div id="tc-spese">
     <div class="mgrid">
-      <div class="metric"><div class="mlbl">Totale</div><div class="mval" id="mtot">€0</div></div>
+      <div class="metric"><div class="mlbl" id="mtot-lbl">Totale</div><div class="mval" id="mtot">€0</div></div>
       <div class="metric"><div class="mlbl">Spese</div><div class="mval" id="mcnt">0</div></div>
-      <div class="metric"><div class="mlbl">Pro capite</div><div class="mval" id="mpc">€0</div></div>
+      <div class="metric"><div class="mlbl">Il mio saldo</div><div class="mval" id="mpc">€0</div></div>
     </div>
     <button class="btn btnp" id="btn-add-exp"><i class="ti ti-plus"></i> Aggiungi spesa</button>
     <button class="btn btng" id="btn-toggle-select">Seleziona spese da compensare</button>
@@ -227,6 +227,7 @@ label{font-size:13px;color:var(--g600);font-weight:500;display:block;margin-bott
     <p style="font-size:12px;color:#999;margin-bottom:8px;">Crea l'account di accesso (email + password provvisoria) e lo abilita subito alle sezioni scelte, in un solo passaggio.</p>
     <input type="email" id="new-user-email" placeholder="Email della persona">
     <input type="text" id="new-user-pass" placeholder="Password provvisoria (min 6 caratteri)">
+    <input type="text" id="new-user-name" placeholder="Nome (come compare tra le persone, es. Ornella)">
     <div id="new-user-sec-checks" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;"></div>
     <label class="chip" style="cursor:pointer;margin-bottom:10px;"><input type="checkbox" id="new-user-is-admin" style="margin-right:4px;">Rendi amministratore</label>
     <button class="btns btnp" id="btn-create-user">Crea utente e abilita accesso</button>
@@ -235,9 +236,10 @@ label{font-size:13px;color:var(--g600);font-weight:500;display:block;margin-bott
   <div class="card">
     <div class="st">Persone autorizzate</div>
     <div id="admin-auth"></div>
-    <p style="font-size:12px;color:#999;margin-top:8px;">Per creare un nuovo accesso: 1) crea l'utente in Console Firebase &rarr; Authentication &rarr; Users. 2) qui sotto abilitalo a una sezione.</p>
+    <p style="font-size:12px;color:#999;margin-top:8px;">Per modificare le sezioni o il nome di un accesso già esistente: scrivi la sua email, eventualmente il nome (lascia vuoto per non modificarlo), spunta le sezioni e conferma.</p>
     <div style="display:flex;gap:8px;flex-direction:column;margin-top:8px;">
       <input type="email" id="new-auth-email" placeholder="Email già creata in Firebase Auth">
+      <input type="text" id="new-auth-name" placeholder="Nome (lascia vuoto per non modificarlo)">
       <div id="new-auth-sec-checks" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
       <button class="btns btnp" id="btn-add-auth">Abilita accesso</button>
     </div>
@@ -275,7 +277,7 @@ label{font-size:13px;color:var(--g600);font-weight:500;display:block;margin-bott
   </div>
   <div class="card">
     <div class="st">Il bilancio</div>
-    <p style="font-size:14px;line-height:1.5;margin-bottom:10px;">Nella tab "Bilancio" vedi chi deve pagare chi. I saldi sono calcolati solo tra le persone che hanno davvero condiviso una spesa insieme: se Anna e Bea vanno al cinema e Carla non c'entra, il saldo tra Anna e Bea resta separato da qualunque altro conto di Carla.</p>
+    <p style="font-size:14px;line-height:1.5;margin-bottom:10px;">Nella tab "Bilancio" vedi chi deve pagare chi. I saldi sono calcolati solo tra le persone che hanno davvero condiviso una spesa insieme: se Anna e Bea vanno al cinema e Carla non c'entra, il saldo tra Anna e Bea resta separato da qualunque altro conto di Carla. <b>Privacy:</b> se il tuo account non è amministratore, vedi solo le spese e i saldi che ti riguardano direttamente, mai quelli delle altre persone tra loro. La casella "Il mio saldo" nella schermata Spese mostra il tuo saldo netto: positivo (verde) se ti devono, negativo (rosso) se devi tu.</p>
   </div>
   <div class="card">
     <div class="st">Saldare una coppia</div>
@@ -291,7 +293,7 @@ label{font-size:13px;color:var(--g600);font-weight:500;display:block;margin-bott
   </div>
   <div class="card">
     <div class="st">Gestione (solo admin)</div>
-    <p style="font-size:14px;line-height:1.5;margin-bottom:10px;">Da qui si aggiungono o rimuovono persone e categorie di questa sezione. Nel riquadro "Crea nuovo utente" si può creare direttamente l'account di accesso di una nuova persona (email + password provvisoria) e abilitarla subito a una o più sezioni, senza passare da altri strumenti. Nel riquadro "Persone autorizzate" si possono invece modificare le sezioni abilitate per un account già esistente.</p>
+    <p style="font-size:14px;line-height:1.5;margin-bottom:10px;">Da qui si aggiungono o rimuovono persone e categorie di questa sezione. Nel riquadro "Crea nuovo utente" si può creare direttamente l'account di accesso di una nuova persona (email + password provvisoria) e abilitarla subito a una o più sezioni, senza passare da altri strumenti. Nel riquadro "Persone autorizzate" si possono invece modificare le sezioni abilitate (e il nome collegato) per un account già esistente. <b>Importante:</b> ogni account va collegato al proprio nome tra le persone (campo "Nome") perché possa vedere le proprie spese e il proprio saldo — senza questo collegamento, chi non è admin non vede nulla.</p>
   </div>
   <div class="card">
     <div class="st">Esporta</div>
@@ -352,6 +354,26 @@ let curCat = null;
 let compGroups = [];     // gruppi di compensazione della sezione attiva
 let selectionMode = false;
 let selectedExpIds = new Set();
+let iAmAdmin = false;
+let myName = null;
+
+// Restituisce le spese visibili all'utente corrente: tutte se admin,
+// solo quelle a cui ha partecipato (come pagatore o partecipante) altrimenti
+function visibleExpenses(){
+  if(iAmAdmin) return expenses;
+  if(!myName) return [];
+  return expenses.filter(e => e.payer===myName || (e.participants||[]).includes(myName));
+}
+function visibleSettlements(){
+  if(iAmAdmin) return settlements;
+  if(!myName) return [];
+  return settlements.filter(s => s.personA===myName || s.personB===myName);
+}
+function visibleCompGroups(){
+  if(iAmAdmin) return compGroups;
+  if(!myName) return [];
+  return compGroups.filter(g => (g.memberNames||[]).includes(myName));
+}
 
 window.setPM = function(v){
   curPM=v;
@@ -461,8 +483,9 @@ function openSection(sec){
   document.getElementById('home-icon').textContent = (SECTIONS.find(s=>s.id===sec)||{}).emoji || '📋';
   document.getElementById('btn-switch-sec').style.display = (userDoc.sezioniAbilitate||[]).length>1 ? 'inline' : 'none';
   document.getElementById('tabbar').style.display='flex';
-  const isAdmin = userDoc.role==='admin';
-  document.getElementById('nav-admin').style.display = isAdmin ? 'flex' : 'none';
+  iAmAdmin = userDoc.role==='admin';
+  myName = userDoc.displayName || null;
+  document.getElementById('nav-admin').style.display = iAmAdmin ? 'flex' : 'none';
   go('s-home'); tab('spese');
 
   const qF = query(collection(db,'friends'), where('sezione','==',sec));
@@ -596,14 +619,32 @@ async function addExpensesToGroup(groupId){
 }
 
 function renderExps(){
-  const tot = expenses.reduce((s,e)=>s+(e.amount||0),0);
+  const vExp = visibleExpenses();
+  const tot = vExp.reduce((s,e)=>s+(e.amount||0),0);
   document.getElementById('mtot').textContent = '€'+tot.toFixed(2);
-  document.getElementById('mcnt').textContent = expenses.length;
-  const pc = friends.length ? tot/friends.length : 0;
-  document.getElementById('mpc').textContent = '€'+pc.toFixed(2);
+  document.getElementById('mcnt').textContent = vExp.length;
+  document.getElementById('mtot-lbl').textContent = iAmAdmin ? 'Totale' : 'Le mie spese';
+  const net = myNetBalance();
+  const mpcEl = document.getElementById('mpc');
+  if(net===null){
+    mpcEl.textContent = '—';
+    mpcEl.title = 'Nessun nome collegato al tuo account';
+  } else if(Math.abs(net)<0.01){
+    mpcEl.textContent = '€0';
+    mpcEl.style.color = '';
+  } else {
+    mpcEl.textContent = (net>0?'+':'-')+'€'+Math.abs(net).toFixed(2);
+    mpcEl.style.color = net>0 ? '#27AE60' : '#E74C3C';
+  }
   const el = document.getElementById('explist');
-  if(!expenses.length){ el.innerHTML='<div style="padding:1rem 0;text-align:center;color:#666;font-size:14px;">Nessuna spesa ancora</div>'; renderSelectionBar(); return; }
-  el.innerHTML = expenses.map(e=>{
+  if(!vExp.length){
+    const msg = (!iAmAdmin && !myName)
+      ? 'Il tuo account non è ancora collegato a un nome tra le persone: chiedi a un\'amministratrice di impostarlo in Gestione, così potrai vedere le tue spese.'
+      : 'Nessuna spesa ancora';
+    el.innerHTML=`<div style="padding:1rem 0;text-align:center;color:#666;font-size:14px;">${msg}</div>`;
+    renderSelectionBar(); return;
+  }
+  el.innerHTML = vExp.map(e=>{
     const c = catBy(e.cat);
     const grp = openGroupOf(e.id);
     const highlighted = !!grp;
@@ -728,7 +769,7 @@ function pairKey(a,b){ return [a,b].sort().join('_'); }
 // Per ogni coppia, calcola il saldo netto (positivo = il secondo nome deve al primo in ordine alfabetico... normalizziamo: ritorna mappa key->{a,b,net} dove net>0 vuol dire b deve ad a)
 function computePairBalances(){
   const pairs = {}; // key -> {names:[a,b] ordinati alfab, net} net = quanto il secondo deve al primo (puo' essere negativo)
-  expenses.forEach(e=>{
+  visibleExpenses().forEach(e=>{
     if(e.compGroupId) return; // gestita separatamente da un gruppo di compensazione
     const parts = e.participants || [];
     if(!parts.length) return;
@@ -771,8 +812,29 @@ function calcOptimizedTransactions(exps){
   return tr;
 }
 
+// Calcola il saldo netto personale di myName: quanto gli devono meno quanto deve,
+// sommando sia i debiti diretti a coppie sia le transazioni ottimizzate dei gruppi aperti
+function myNetBalance(){
+  if(!myName) return null;
+  let net = 0;
+  const pairs = computePairBalances();
+  Object.values(pairs).forEach(p=>{
+    if(p.a===myName) net += p.net;
+    else if(p.b===myName) net -= p.net;
+  });
+  visibleCompGroups().filter(g=>g.status==='open').forEach(g=>{
+    const exps = expenses.filter(e=>(g.expenseIds||[]).includes(e.id));
+    const tr = calcOptimizedTransactions(exps);
+    tr.forEach(t=>{
+      if(t.to===myName) net += t.amount;
+      else if(t.from===myName) net -= t.amount;
+    });
+  });
+  return net;
+}
+
 function renderCompGroups(){
-  const openGroups = compGroups.filter(g=>g.status==='open');
+  const openGroups = visibleCompGroups().filter(g=>g.status==='open');
   if(!openGroups.length) return '';
   return openGroups.map(g=>{
     const exps = expenses.filter(e=>(g.expenseIds||[]).includes(e.id));
@@ -858,8 +920,9 @@ async function settlePair(a,b,amt){
 // ---------- STORICO ----------
 function renderHist(){
   const el = document.getElementById('histcont');
-  if(!settlements.length){ el.innerHTML='<div style="padding:8px 0;font-size:14px;color:#666;">Nessun saldo effettuato ancora</div>'; return; }
-  el.innerHTML = settlements.map(s=>`
+  const vSet = visibleSettlements();
+  if(!vSet.length){ el.innerHTML='<div style="padding:8px 0;font-size:14px;color:#666;">Nessun saldo effettuato ancora</div>'; return; }
+  el.innerHTML = vSet.map(s=>`
     <div class="expitem">
       <div class="expmain"><div><b>${s.personA}</b> ↔ <b>${s.personB}</b></div>
         <div style="display:flex;align-items:center;gap:8px;">
@@ -936,7 +999,7 @@ document.getElementById('btn-add-cat').addEventListener('click', async ()=>{
 function renderAdminAuth(all){
   const el = document.getElementById('admin-auth');
   if(!el) return;
-  el.innerHTML = all.map(a=>`<div class="balrow"><div>${a.id}</div><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;color:#666;">${(a.sezioniAbilitate||[]).join(', ')} ${a.role==='admin'?'· admin':''}</span>${a.id!==userEmail?`<span class="rm" data-email="${a.id}" style="cursor:pointer;color:#E74C3C;font-size:18px;">&times;</span>`:''}</div></div>`).join('') || '<div style="font-size:13px;color:#999;">Nessun accesso configurato</div>';
+  el.innerHTML = all.map(a=>`<div class="balrow"><div>${a.id}${a.displayName?` <span style="color:var(--g600);font-weight:600;">(${a.displayName})</span>`:' <span style="color:#C0392B;">(nome non collegato)</span>'}</div><div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;color:#666;">${(a.sezioniAbilitate||[]).join(', ')} ${a.role==='admin'?'· admin':''}</span>${a.id!==userEmail?`<span class="rm" data-email="${a.id}" style="cursor:pointer;color:#E74C3C;font-size:18px;">&times;</span>`:''}</div></div>`).join('') || '<div style="font-size:13px;color:#999;">Nessun accesso configurato</div>';
   el.querySelectorAll('.rm[data-email]').forEach(b=>b.addEventListener('click', ()=>removeAuth(b.dataset.email)));
 }
 async function removeAuth(email){
@@ -961,21 +1024,31 @@ const SEED_DATA = {
 document.getElementById('btn-seed').addEventListener('click', async ()=>{
   const seed = SEED_DATA[curSec];
   if(!seed) return;
-  if(!confirm(`Caricare i dati iniziali della sezione ${curSec}? Le persone/categorie già presenti non verranno duplicate.`)) return;
-  const existingFriendNames = friends.map(f=>f.name);
-  const existingCatLabels = categories.map(c=>c.label);
-  for(const name of seed.friends){
-    if(!existingFriendNames.includes(name)){
-      await addDoc(collection(db,'friends'), { name, sezione:curSec, active:true, addedAt:serverTimestamp() });
+  const btn = document.getElementById('btn-seed');
+  if(btn.disabled) return; // evita doppio click mentre è già in corso
+  const already = friends.length>0 || categories.length>0;
+  const msg = already
+    ? `Attenzione: questa sezione ha già ${friends.length} persone e ${categories.length} categorie. Il caricamento aggiunge solo i nomi mancanti rispetto all'elenco base, ma se hai appena creato manualmente qualcosa con un nome leggermente diverso potresti ritrovarti doppioni. Procedere comunque?`
+    : `Caricare i dati iniziali della sezione ${curSec}?`;
+  if(!confirm(msg)) return;
+  btn.disabled=true; btn.textContent='Caricamento in corso...';
+  try{
+    const existingFriendNames = friends.map(f=>f.name);
+    const existingCatLabels = categories.map(c=>c.label);
+    for(const name of seed.friends){
+      if(!existingFriendNames.includes(name)){
+        await addDoc(collection(db,'friends'), { name, sezione:curSec, active:true, addedAt:serverTimestamp() });
+      }
     }
-  }
-  for(let i=0;i<seed.cats.length;i++){
-    const label = seed.cats[i];
-    if(!existingCatLabels.includes(label)){
-      await addDoc(collection(db,'categories'), { label, sezione:curSec, order:i });
+    for(let i=0;i<seed.cats.length;i++){
+      const label = seed.cats[i];
+      if(!existingCatLabels.includes(label)){
+        await addDoc(collection(db,'categories'), { label, sezione:curSec, order:i });
+      }
     }
-  }
-  alert('Dati iniziali caricati.');
+    alert('Dati iniziali caricati.');
+  }catch(e){ alert('Errore: '+e.message); }
+  btn.disabled=false; btn.textContent='Carica dati iniziali di questa sezione';
 });
 document.getElementById('new-auth-sec-checks').innerHTML = SECTIONS.map(s=>
   `<label class="chip" style="cursor:pointer;"><input type="checkbox" value="${s.id}" class="auth-sec-check" style="margin-right:4px;">${s.emoji} ${s.label}</label>`
@@ -998,10 +1071,11 @@ document.getElementById('btn-create-user').addEventListener('click', async ()=>{
   try{
     await createUserWithEmailAndPassword(secondaryAuth, email, pass);
     await signOut(secondaryAuth);
-    await setDoc(doc(db,'authorizedEmails', email), { role: document.getElementById('new-user-is-admin').checked ? 'admin' : 'member', sezioniAbilitate:sez, addedAt:serverTimestamp() });
+    await setDoc(doc(db,'authorizedEmails', email), { role: document.getElementById('new-user-is-admin').checked ? 'admin' : 'member', sezioniAbilitate:sez, displayName: document.getElementById('new-user-name').value.trim() || null, addedAt:serverTimestamp() });
     fb.innerHTML='<div class="aok">Utente creato e abilitato! Comunica email e password alla persona.</div>';
     document.getElementById('new-user-email').value='';
     document.getElementById('new-user-pass').value='';
+    document.getElementById('new-user-name').value='';
     document.getElementById('new-user-is-admin').checked=false;
     document.querySelectorAll('.new-user-sec-check').forEach(c=>c.checked=false);
   }catch(e){
@@ -1013,12 +1087,16 @@ document.getElementById('btn-create-user').addEventListener('click', async ()=>{
 });
 document.getElementById('btn-add-auth').addEventListener('click', async ()=>{
   const email = document.getElementById('new-auth-email').value.trim();
+  const nome = document.getElementById('new-auth-name').value.trim();
   const sezSelezionate = Array.from(document.querySelectorAll('.auth-sec-check:checked')).map(c=>c.value);
   if(!email){ alert('Inserisci un\'email.'); return; }
   if(!sezSelezionate.length){ alert('Seleziona almeno una sezione.'); return; }
+  const payload = { sezioniAbilitate:sezSelezionate, addedAt:serverTimestamp() };
+  if(nome) payload.displayName = nome; // aggiorna il nome solo se scritto, altrimenti lascia quello esistente
   try{
-    await setDoc(doc(db,'authorizedEmails', email), { sezioniAbilitate:sezSelezionate, addedAt:serverTimestamp() }, {merge:true});
+    await setDoc(doc(db,'authorizedEmails', email), payload, {merge:true});
     document.getElementById('new-auth-email').value='';
+    document.getElementById('new-auth-name').value='';
     document.querySelectorAll('.auth-sec-check').forEach(c=>c.checked=false);
   }catch(e){
     alert('Errore nel salvataggio: '+e.code+' — '+e.message);
@@ -1036,14 +1114,14 @@ document.getElementById('btn-wa').addEventListener('click', ()=>{
     txt += `• ${debtor} → ${creditor}: €${amt.toFixed(2)}\n`;
   });
   txt += `\n*Dettaglio spese:*\n`;
-  expenses.forEach(e=>{ txt += `• [${catBy(e.cat).label}] ${e.desc||''} — €${(e.amount||0).toFixed(2)} (pagato da ${e.payer})\n`; });
+  visibleExpenses().forEach(e=>{ txt += `• [${catBy(e.cat).label}] ${e.desc||''} — €${(e.amount||0).toFixed(2)} (pagato da ${e.payer})\n`; });
   try{ navigator.clipboard.writeText(txt); }catch(x){}
   document.getElementById('exp-fb').innerHTML='<div class="aok">Testo copiato! Incollalo su WhatsApp.</div>';
   setTimeout(()=>document.getElementById('exp-fb').innerHTML='',3000);
 });
 document.getElementById('btn-csv').addEventListener('click', ()=>{
   let csv='Data;Categoria;Descrizione;Metodo;Importo;Pagato da;Partecipanti\n';
-  expenses.forEach(e=>{ csv+=`"${e.date}";"${catBy(e.cat).label}";"${e.desc||''}";"${e.pm==='card'?'Carta':'Contanti'}";${(e.amount||0).toFixed(2)};"${e.payer}";"${(e.participants||[]).join(', ')}"\n`; });
+  visibleExpenses().forEach(e=>{ csv+=`"${e.date}";"${catBy(e.cat).label}";"${e.desc||''}";"${e.pm==='card'?'Carta':'Contanti'}";${(e.amount||0).toFixed(2)};"${e.payer}";"${(e.participants||[]).join(', ')}"\n`; });
   const bom='\uFEFF'; const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([bom+csv],{type:'text/csv;charset=utf-8;'}));
   a.download=`spese_${curSec}.csv`; a.click();
@@ -1054,7 +1132,7 @@ document.getElementById('btn-pdf').addEventListener('click', ()=>{
   const {jsPDF}=window.jspdf; const docx=new jsPDF(); let y=20;
   docx.setFontSize(16); docx.text(`Spese tra amiche — ${sectionLabel(curSec)}`,14,y); y+=10;
   docx.setFontSize(11);
-  expenses.forEach(e=>{
+  visibleExpenses().forEach(e=>{
     if(y>270){docx.addPage();y=20;}
     docx.text(`${e.date} [${catBy(e.cat).label}] ${e.desc||''} — €${(e.amount||0).toFixed(2)} (${e.payer})`,14,y); y+=6;
   });
