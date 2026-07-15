@@ -514,7 +514,7 @@ function openSection(sec){
     compGroups = snap.docs.map(d=>({id:d.id,...d.data()}));
     renderExps(); renderBal();
   }));
-  if(isAdmin){
+  if(iAmAdmin){
     const qA = query(collection(db,'authorizedEmails'));
     unsubs.push(onSnapshot(qA, snap=>{
       const all = snap.docs.map(d=>({id:d.id,...d.data()}));
