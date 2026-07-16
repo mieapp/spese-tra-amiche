@@ -921,8 +921,18 @@ function computeAggregatedBalances(){
   return agg;
 }
 
+// Tra le righe aggregate, tiene solo quelle che riguardano davvero l'utente
+// (o il suo gruppo): una spesa condivisa da più persone può generare righe
+// tra altre due persone che non coinvolgono direttamente chi guarda
+function myVisibleRows(rows){
+  if(iAmAdmin) return rows;
+  if(!myName) return [];
+  const myId = displayIdentity(myName);
+  return rows.filter(p => p.a===myId || p.b===myId);
+}
+
 function renderBal(){
-  const rows = Object.values(computeAggregatedBalances());
+  const rows = myVisibleRows(Object.values(computeAggregatedBalances()));
   const el = document.getElementById('balcont');
   const groupsHtml = renderCompGroups();
   const rowsHtml = rows.length ? rows.map(p=>{
@@ -1224,7 +1234,7 @@ document.getElementById('btn-add-auth').addEventListener('click', async ()=>{
 
 // ---------- EXPORT ----------
 document.getElementById('btn-wa').addEventListener('click', ()=>{
-  const rows = Object.values(computeAggregatedBalances());
+  const rows = myVisibleRows(Object.values(computeAggregatedBalances()));
   let txt = `*Spese tra amiche — ${sectionLabel(curSec)}*\n\n*Chi deve pagare chi:*\n`;
   if(!rows.length) txt += 'Tutti in pari!\n';
   rows.forEach(p=>{
