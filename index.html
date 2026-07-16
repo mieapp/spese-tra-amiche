@@ -99,6 +99,11 @@ label{font-size:13px;color:var(--g600);font-weight:500;display:block;margin-bott
 .cbarfill{height:7px;border-radius:4px;background:var(--g400);}
 .covimg{width:100%;border-radius:var(--rlg);margin-bottom:16px;}
 .link{color:var(--g600);font-size:14px;text-align:center;display:block;cursor:pointer;margin-top:6px;}
+.topaction{color:var(--g600);font-size:12px;cursor:pointer;white-space:nowrap;}
+.topactions{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;}
+.sectiontabs{display:flex;gap:6px;margin:2px 0 14px;overflow-x:auto;}
+.sectiontabbtn{padding:6px 13px;border-radius:16px;font-size:12px;font-weight:600;border:1.5px solid var(--g100);background:#fff;color:var(--g600);cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent;}
+.sectiontabbtn.on{background:var(--g400);color:#fff;border-color:var(--g400);}
 .settlecard{background:var(--g50);border-radius:var(--rmd);padding:8px 10px;margin-top:6px;font-size:12px;color:#555;}
 .gbox{border:1.5px solid var(--g100);border-radius:var(--rmd);padding:10px 14px;margin-bottom:10px;background:var(--g50);}
 .gboxh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
@@ -149,12 +154,13 @@ label{font-size:13px;color:var(--g600);font-weight:500;display:block;margin-bott
       <div id="home-icon" style="width:38px;height:38px;border-radius:50%;background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;">👭</div>
       <h1 id="home-title">Amiche</h1>
     </div>
-    <div>
-      <span class="link" id="btn-switch-sec" style="display:none;margin:0 10px 0 0;">Cambia sezione</span>
-      <span class="link" id="btn-change-pass" style="margin:0 10px 0 0;">Password</span>
-      <button class="logoutbtn" id="btn-logout">Esci</button>
+    <div class="topactions">
+      <span class="topaction" id="btn-change-pass">Cambia password</span>
+      <span style="color:var(--g100);">·</span>
+      <button class="logoutbtn" id="btn-logout" style="padding:0;">Esci</button>
     </div>
   </div>
+  <div class="sectiontabs" id="section-tabs" style="display:none;"></div>
   <div class="nav">
     <button class="nbtn on" id="t-spese">Spese</button>
     <button class="nbtn" id="t-bilancio">Bilancio</button>
@@ -484,12 +490,20 @@ onAuthStateChanged(auth, async (u)=>{
   }
 });
 
-document.getElementById('btn-switch-sec').addEventListener('click', ()=>{
-  stopListeners();
-  go('s-section');
-});
-
 function stopListeners(){ unsubs.forEach(u=>u()); unsubs=[]; }
+
+function renderSectionTabs(){
+  const el = document.getElementById('section-tabs');
+  const mySections = SECTIONS.filter(s => (userDoc.sezioniAbilitate||[]).includes(s.id));
+  if(mySections.length <= 1){ el.style.display='none'; el.innerHTML=''; return; }
+  el.style.display='flex';
+  el.innerHTML = mySections.map(s=>
+    `<button class="sectiontabbtn${s.id===curSec?' on':''}" data-sec="${s.id}">${s.emoji} ${s.label}</button>`
+  ).join('');
+  el.querySelectorAll('[data-sec]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{ if(btn.dataset.sec!==curSec) openSection(btn.dataset.sec); });
+  });
+}
 
 function openSection(sec){
   stopListeners();
@@ -497,7 +511,7 @@ function openSection(sec){
   selectionMode = false; selectedExpIds = new Set();
   document.getElementById('home-title').textContent = sectionLabel(sec);
   document.getElementById('home-icon').textContent = (SECTIONS.find(s=>s.id===sec)||{}).emoji || '📋';
-  document.getElementById('btn-switch-sec').style.display = (userDoc.sezioniAbilitate||[]).length>1 ? 'inline' : 'none';
+  renderSectionTabs();
   document.getElementById('tabbar').style.display='flex';
   iAmAdmin = userDoc.role==='admin';
   myName = userDoc.displayName || null;
