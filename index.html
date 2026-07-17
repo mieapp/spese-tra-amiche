@@ -978,7 +978,7 @@ function gatherCoverage(a,b){
     if(!involvesPair) return;
     const share = (e.amount||0)/parts.length;
     covered.push({ expenseId:e.id, desc:e.desc||catBy(e.cat).label, date:e.date, amountForPair: share, pairKey:key });
-    updates.push({ id:e.id, newSettled:[...already, key] });
+    updates.push({ id:e.id, key });
   });
   return { covered, updates };
 }
@@ -1001,7 +1001,7 @@ async function settlePair(idA, idB, amt){
   });
   try{
     for(const u of allUpdates){
-      await updateDoc(doc(db,'expenses',u.id), { settledPairs:u.newSettled });
+      await updateDoc(doc(db,'expenses',u.id), { settledPairs: arrayUnion(u.key) });
     }
     await addDoc(collection(db,'settlements'), {
       sezione:curSec, personA:idA, personB:idB, amount:amt, date:new Date().toISOString().split('T')[0],
